@@ -33,7 +33,7 @@ const registerUser = async (req, res) => {
     }
 }
 const loginUser = async (req, res) => {
-    console.log("Login request received");
+    
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -66,5 +66,12 @@ const loginUser = async (req, res) => {
         res.status(500).json({ message: "Error while logging in a user", error: error.message });
     }
 };
-
-module.exports={registerUser,loginUser}
+const validUser=async(req,res)=>{
+    try {
+        const preUserOne = await users.findOne({_id:req.userId});
+        res.status(201).json({status:201,preUserOne});
+    } catch (error) {
+        res.status(401).json({status:401,error});
+    }
+  };
+module.exports={registerUser,loginUser,validUser}
