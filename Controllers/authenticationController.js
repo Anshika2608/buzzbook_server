@@ -1,7 +1,9 @@
 const users = require("../Models/userModel");
+const bcrypt = require("bcryptjs");
+const jwt=require("jsonwebtoken")
 const registerUser = async (req, res) => {
     const { name, email, password, cpassword } = req.body;
-    if (!name, !email, !password, !cpassword) {
+    if (!name || !email || !password || !cpassword) {
         return res.status(400).json({ message: "Fill all the fields!" });
     }
     try {
@@ -21,12 +23,48 @@ const registerUser = async (req, res) => {
         } else {
             const finalUser = new users({ name, email, password, cpassword });
             const storeUser = await finalUser.save();
+            console.log(storeUser);
             res.status(201).json({ message: "User Successfully added" });
 
         }
     } catch (error) {
-        console.log(err);
+        console.log(error);
         res.status(500).json({ message: "Error while registering a user", error: error.message });
     }
 }
-module.exports={registerUser}
+const loginUser = async (req, res) => {
+    console.log("Login request received");
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: "Fill all the required fields!" });
+    }
+
+    try {
+        const preUser = await users.findOne({ email: email });
+        if (!preUser) {
+            return res.status(400).json({ message: "User does not exist!" });
+        } else {
+            const isMatch = await bcrypt.compare(password, preUser.password);
+            if (!isMatch) {
+                return res.status(400).json({ message: "Invalid details!" });
+            } else {
+                const token = await preUser.generateAuthToken();
+                res.cookie("usercookie", token, {
+                    expires: new Date(Date.now() + 9000000),
+                    httpOnly: true
+                });
+
+                const result = {
+                    preUser,
+                    token
+                };
+                return res.status(201).json({ message: "User logged in successfully", result });
+            }
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Error while logging in a user", error: error.message });
+    }
+};
+
+module.exports={registerUser,loginUser}

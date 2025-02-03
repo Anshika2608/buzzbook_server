@@ -1,5 +1,8 @@
 const express=require("express")
 const router=express.Router();
-const {registerUser}=require("../Controllers/authenticationController")
+const authenticate=require("../Middleware/Authenticate")
+const {registerUser,loginUser}=require("../Controllers/authenticationController")
 router.post("/register",registerUser);
+router.post("/login",loginUser);
+// router.get("/validUser",authenticate,validUser);
 module.exports=router;
