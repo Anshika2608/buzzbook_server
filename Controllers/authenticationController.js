@@ -2,30 +2,31 @@ const users = require("../Models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const passport = require("passport");
+
 const registerUser = async (req, res) => {
     const { name, email, password, cpassword, recaptchaToken } = req.body;
     if (!name || !email || !password || !cpassword || !recaptchaToken) {
         return res.status(400).json({ message: "Fill all the fields!" });
     }
-    
+
 
     try {
-     
-            const response = await axios.post(
-                `https://www.google.com/recaptcha/api/siteverify`,
-                null,
-                {
-                    params: {
-                        secret: process.env.RECAPTCHA_SECRET, 
-                        response: recaptchaToken, 
-                    },
-                }
-            );
-
-            if (!response.data.success) {
-                return res.status(400).json({ message: "reCAPTCHA validation failed!" });
+        const response = await axios.post(
+            `https://www.google.com/recaptcha/api/siteverify`,
+            null,
+            {
+                params: {
+                    secret: process.env.RECAPTCHA_SECRET,
+                    response: recaptchaToken,
+                },
             }
-        
+        );
+
+        if (!response.data.success) {
+            return res.status(400).json({ message: "reCAPTCHA validation failed!" });
+        }
+
         const nameRegex = /^[a-zA-Z ]{2,40}$/;
         const preuser = await users.findOne({ email: email });
         if (preuser) {
@@ -53,21 +54,18 @@ const registerUser = async (req, res) => {
 }
 const loginUser = async (req, res) => {
 
-    const { email, password,recaptchaToken } = req.body;
-
+    const { email, password, recaptchaToken } = req.body;
     if (!email || !password || !recaptchaToken) {
         return res.status(400).json({ message: "Fill all the required fields!" });
     }
-
     try {
         console.log("Received reCAPTCHA Token:", recaptchaToken);
-
         const response = await axios.post(
             `https://www.google.com/recaptcha/api/siteverify`,
             null,
             {
                 params: {
-                    secret: process.env.RECAPTCHA_SECRET, 
+                    secret: process.env.RECAPTCHA_SECRET,
                     response: recaptchaToken,
                 },
             }
@@ -76,7 +74,6 @@ const loginUser = async (req, res) => {
         if (!response.data.success) {
             return res.status(400).json({ message: "reCAPTCHA validation failed!", details: response.data });
         }
-    
         const preUser = await users.findOne({ email: email });
         if (!preUser) {
             return res.status(400).json({ message: "User does not exist!" });
@@ -110,4 +107,11 @@ const validUser = async (req, res) => {
         res.status(401).json({ status: 401, error });
     }
 };
-module.exports = { registerUser, loginUser, validUser }
+
+
+googleLogin = passport.authenticate("google", {
+    scope: ["profile", "email"]
+});
+
+
+module.exports = { registerUser, loginUser, validUser,googleLogin }
