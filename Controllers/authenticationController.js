@@ -26,7 +26,7 @@ const registerUser = async (req, res) => {
                 return res.status(400).json({ message: "reCAPTCHA validation failed!" });
             }
         
-        const nameRegex = /^[a-zA-Z]{2,40}$/;
+        const nameRegex = /^[a-zA-Z ]{2,40}$/;
         const preuser = await users.findOne({ email: email });
         if (preuser) {
             return res.status(400).json({ message: "User already exists!" });
