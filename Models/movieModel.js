@@ -48,7 +48,7 @@ const movieSchema=new mongoose.Schema({
         type:String,
         required:true
     },
-    poster:{
+    poster_img:{
         type:Array,
         required:true
     },
