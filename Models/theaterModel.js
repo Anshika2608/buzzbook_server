@@ -16,6 +16,10 @@ const theaterSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    popular:{
+        required:true,
+        type:Boolean
+    },
     films_showing: {
         type: [
             {
