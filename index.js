@@ -25,7 +25,9 @@ app.use(passport.session());
 
 
 app.use("/", require("./Routes/AuthenticationRoute"));
-app.use("/movie",require("./Routes/MovieRoutes"))
+app.use("/movie",require("./Routes/MovieRoutes"));
+app.use("/theater",require("./Routes/TheaterRoutes"));
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
