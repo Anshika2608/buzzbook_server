@@ -1,10 +1,10 @@
 const theater = require("../Models/theaterModel");
 const getTheater = async (req, res) => {
     try {
-        const { location } = req.params;
-        const theaters = await theater.find({ location })
+        const { location } = req.query;
+        const theaters = await theater.find({ location: { $regex: new RegExp("^" + location, "i") } })
         if (!theaters.length) {
-            return res.status(400).json({ message: `No theater available at this ${location}` })
+            return res.status(400).json({ message: `No theater available in ${location}` })
         }
         else {
             return res.status(201).json({ message: "list of theaters recieved successfully", theaters })
@@ -29,7 +29,7 @@ const addTheater = async (req, res) => {
 
     try {
         const existingTheater = await theater.findOne({ theater_id });
-        
+
         if (existingTheater) {
             return res.status(400).json({ message: "Theater ID must be unique. A theater with this ID already exists." });
         }
