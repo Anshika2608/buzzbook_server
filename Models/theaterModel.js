@@ -1,7 +1,12 @@
 const mongoose = require("mongoose")
+const seatLayout=new mongoose.Schema({
+    seat_number: {type:String},
+    type: { type: String, required:true },
+    is_booked: { type: Boolean, default: false }
+})
 const theaterSchema = new mongoose.Schema({
     theater_id: {
-        type: Number,
+        type: String,
         required: true
     },
     name: {
@@ -31,28 +36,41 @@ const theaterSchema = new mongoose.Schema({
         required: true
     },
     contact: {
-        type: Number,
+        type: String,
         required: true
+    },
+    layout_type:{
+        type:String,
+        required:true
     },
     seating_capacity: {
         type: Number,
         required: true
     },
-    seating_layout: {
-        type: [
-            {
-                row: { type: String, required: true }, 
-                seats: [
-                    {
-                        seat_number: { type: String, required: true }, 
-                        type: { type: String, enum: ["Regular", "Premium", "VIP"], required: true },
-                        price: { type: Number, required: true },
-                        is_booked: { type: Boolean, default: false } 
-                    }
-                ]
-            }
-        ],
-        required: true
-    }
+    vipRows: {
+        type: Number,
+        default: 0
+    },
+    premiumRows: {
+        type: Number,
+        default: 0
+    },
+    sofaRows: {
+        type: Number,
+        default: 0
+    },
+    regularRows: {
+        type: Number,
+        default: 0
+    },
+    reclinerRows: {
+        type: Number,
+        default: 0
+    },
+    emptySpaces: {
+        type: [String],
+        default: []
+    },
+    seating_layout:[[seatLayout]]
 })
 module.exports=mongoose.model("Theaters",theaterSchema)
