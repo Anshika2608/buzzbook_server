@@ -29,9 +29,15 @@ const addTheater = async (req, res) => {
 
     try {
         const existingTheater = await theater.findOne({ theater_id });
-
+        const existingTheaterName = await theater.findOne({
+            name: { $regex: new RegExp(`^${name}$`, "i") },
+            location: { $regex: new RegExp(`^${location}$`, "i") }
+        });
         if (existingTheater) {
             return res.status(400).json({ message: "Theater ID must be unique. A theater with this ID already exists." });
+        }
+        if (existingTheaterName) {
+            return res.status(400).json({ message: "Theater with this name already exists in this location!" })
         }
         const seating_capacity = seating_layout.length * seating_layout[0].length;
 
@@ -54,6 +60,22 @@ const addTheater = async (req, res) => {
         return res.status(500).json({ message: "Error in creating new theater", error: error.message });
     }
 };
+const getSeatLayout = async (req, res) => {
+    const { name } = req.params;
+    try {
+        const theaterData = await theater.findOne({ 
+            name:{$regex:new RegExp(`^${name}`,"i")}
+         });
+        if (!theaterData) {
+            return res.status(400).json({ message: "Theater not found " })
+        }
+        else {
+            return res.status(201).json({ message: "Seat layout fetched successfully", layout: theaterData.seating_layout })
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Error in fetching seat_layout", error: error.message })
+    }
 
+}
 
-module.exports = { getTheater, addTheater }
+module.exports = { getTheater, addTheater, getSeatLayout }
