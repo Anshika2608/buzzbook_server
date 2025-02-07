@@ -63,9 +63,9 @@ const addTheater = async (req, res) => {
 const getSeatLayout = async (req, res) => {
     const { name } = req.params;
     try {
-        const theaterData = await theater.findOne({ 
-            name:{$regex:new RegExp(`^${name}`,"i")}
-         });
+        const theaterData = await theater.findOne({
+            name: { $regex: new RegExp(`^${name}`, "i") }
+        });
         if (!theaterData) {
             return res.status(400).json({ message: "Theater not found " })
         }
@@ -77,5 +77,25 @@ const getSeatLayout = async (req, res) => {
     }
 
 }
+const getTheaterForMovie = async (req, res) => {
 
-module.exports = { getTheater, addTheater, getSeatLayout }
+    try {
+        const { location , title} = req.params;
+        if (!title) {
+            return res.status(400).json({ message: "provide film for which theater have to be shown" })
+        } else if (!location) {
+            return res.status(400).json({ message: "Select location first!" })
+        } else {
+          const theaters=await theater.find({"films_showing.title":title,location});
+          if(!theaters || theaters.length === 0){
+            return res.status(404).json({message:"this movie is not available at any theater in this location"})
+          }else{
+            return res.status(201).json({message:"theaters shown successfully",theaters})
+          }
+          
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Error while getting theaters for particular film", error: error.message });
+    }
+}
+module.exports = { getTheater, addTheater, getSeatLayout, getTheaterForMovie }
