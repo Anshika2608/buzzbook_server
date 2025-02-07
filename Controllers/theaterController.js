@@ -86,7 +86,7 @@ const getTheaterForMovie = async (req, res) => {
         } else if (!location) {
             return res.status(400).json({ message: "Select location first!" })
         } else {
-          const theaters=await theater.find({"films_showing.title":title,location});
+          const theaters=await theater.find({"films_showing.title":title,location:{$regex:location,$options:"i"}});
           if(!theaters || theaters.length === 0){
             return res.status(404).json({message:"this movie is not available at any theater in this location"})
           }else{
