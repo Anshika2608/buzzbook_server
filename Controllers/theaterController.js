@@ -31,7 +31,7 @@ const addTheater = async (req, res) => {
         const existingTheater = await theater.findOne({ theater_id });
         const existingTheaterName = await theater.findOne({
             name: { $regex: new RegExp(`^${name}$`, "i") },
-            location: { $regex: new RegExp(`^${location}$`, "i") }
+            address: { $regex: new RegExp(`^${address}$`, "i") }
         });
         if (existingTheater) {
             return res.status(400).json({ message: "Theater ID must be unique. A theater with this ID already exists." });

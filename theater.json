@@ -1,0 +1,1990 @@
+{
+    "theaters": [
+        {
+            "theater_id": "MUM001",
+            "name": "PVR Icon Andheri",
+            "address": "Andheri West, Mumbai",
+            "location": "Mumbai",
+            "popular": true,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "layout_type": "Standard",
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "empty_spaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9876543210"
+        },
+        {
+            "theater_id": "MUM002",
+            "name": "INOX Nariman Point",
+            "address": "Nariman Point, Mumbai",
+            "location": "Mumbai",
+            "popular": true,
+            "films_showing": [
+                {
+                    "title": "Kantara",
+                    "language": "Kannada",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "luxury",
+            "sofaRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9865321470"
+        },
+        {
+            "theater_id": "MUM003",
+            "name": "Cinepolis Bhandup",
+            "address": "Bhandup, Mumbai",
+            "location": "Mumbai",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "balcony",
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "premiumRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9823456789"
+        },
+        {
+            "theater_id": "MUM004",
+            "name": "Carnival Cinemas",
+            "address": "Worli, Mumbai",
+            "location": "Mumbai",
+            "popular": true,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 10,
+            "seatsPerRow": 10,
+            "layout_type": "Studio",
+            "empty_spaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "regularRows": 10,
+            "contact": "+91 9988776655"
+        },
+        {
+            "theater_id": "MUM005",
+            "name": "MovieTime Goregaon",
+            "address": "Goregaon, Mumbai",
+            "location": "Mumbai",
+            "popular": true,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "RRR",
+                    "language": "Telugu",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "luxury",
+            "rows": 10,
+            "seatsPerRow": 10,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "sofaRows": 4,
+            "regularRows": 6,
+            "contact": "+91 9764312890"
+        },
+        {
+            "theater_id": "AGR001",
+            "name": "PVR Pacific Mall",
+            "address": "Pacific Mall, Agra",
+            "location": "Agra",
+            "popular": false,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "layout_type": "standard",
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9823456789"
+        },
+        {
+            "theater_id": "AGR002",
+            "name": "INOX Agra Central",
+            "address": "Sadar Bazaar, Agra",
+            "location": "Agra",
+            "popular": true,
+            "films_showing": [
+                {
+                    "title": "Kantara",
+                    "language": "Kannada",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "luxury",
+            "sofaRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9845123456"
+        },
+        {
+            "theater_id": "AGR003",
+            "name": "SRS Cinemas",
+            "address": "Sanjay Place, Agra",
+            "location": "Agra",
+            "popular": true,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9812345678"
+        },
+        {
+            "theater_id": "AGR004",
+            "name": "Wave Cinemas",
+            "address": "Taj Ganj, Agra",
+            "location": "Agra",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 10,
+            "seatsPerRow": 10,
+            "layout_type": "studio",
+            "regularRows": 10,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9876543211"
+        },
+        {
+            "theater_id": "AGR005",
+            "name": "Big Cinemas",
+            "address": "Dayal Bagh, Agra",
+            "location": "Agra",
+            "popular": true,
+            "rows": 10,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "RRR",
+                    "language": "Telugu",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "luxury",
+            "sofaRows": 4,
+            "regularRows": 6,
+            "contact": "+91 9933445566",
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ]
+        },
+        {
+            "theater_id": "BLR001",
+            "name": "PVR Orion Mall",
+            "address": "Orion Mall, Bengaluru",
+            "location": "Bengaluru",
+            "popular": false,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "standard",
+            "contact": "+91 9876543211"
+        },
+        {
+            "theater_id": "BLR002",
+            "name": "INOX Garuda Mall",
+            "address": "Garuda Mall, Bengaluru",
+            "location": "Bengaluru",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Kantara",
+                    "language": "Kannada",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "luxury",
+            "sofaRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9865321471"
+        },
+        {
+            "theater_id": "BLR003",
+            "name": "Cinepolis Forum Mall",
+            "address": "Forum Mall, Bengaluru",
+            "location": "Bengaluru",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9823456790"
+        },
+        {
+            "theater_id": "BLR004",
+            "name": "Carnival Cinemas",
+            "address": "JP Nagar, Bengaluru",
+            "location": "Bengaluru",
+            "popular": true,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 10,
+            "seatsPerRow": 10,
+            "layout_type": "studio",
+            "regularRows": 10,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9988776656"
+        },
+        {
+            "theater_id": "BLR005",
+            "name": "MovieTime Whitefield",
+            "address": "Whitefield, Bengaluru",
+            "location": "Bengaluru",
+            "popular": false,
+            "rows": 10,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "RRR",
+                    "language": "Telugu",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "luxury",
+            "sofaRows": 4,
+            "regularRows": 6,
+            "contact": "+91 9764312891"
+        },
+        {
+            "theater_id": "KOL001",
+            "name": "PVR South City Mall",
+            "address": "South City Mall, Kolkata",
+            "location": "Kolkata",
+            "popular": false,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "standard",
+            "contact": "+91 9876543212"
+        },
+        {
+            "theater_id": "KOL002",
+            "name": "INOX City Centre",
+            "address": "Salt Lake, Kolkata",
+            "location": "Kolkata",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Kantara",
+                    "language": "Kannada",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "luxury",
+            "sofaRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9876543213"
+        },
+        {
+            "theater_id": "KOL003",
+            "name": "Carnival Cinemas",
+            "address": "Park Street, Kolkata",
+            "location": "Kolkata",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9812345679"
+        },
+        {
+            "theater_id": "KOL004",
+            "name": "Cinepolis Acropolis Mall",
+            "address": "Acropolis Mall, Kolkata",
+            "location": "Kolkata",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 10,
+            "seatsPerRow": 10,
+            "layout_type": "studio",
+            "regularRows": 10,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9876543214"
+        },
+        {
+            "theater_id": "KOL005",
+            "name": "Bioscope Cinemas",
+            "address": "Rajdanga, Kolkata",
+            "location": "Kolkata",
+            "popular": false,
+            "rows": 10,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "RRR",
+                    "language": "Telugu",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "luxury",
+            "sofaRows": 4,
+            "regularRows": 6,
+            "contact": "+91 9933445567"
+        },
+        {
+            "theater_id": "KOC001",
+            "name": "PVR Lulu Mall",
+            "address": "Lulu Mall, Kochi",
+            "location": "Kochi",
+            "popular": false,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "standard",
+            "contact": "+91 9876543215"
+        },
+        {
+            "theater_id": "KOC002",
+            "name": "Cinepolis Center Square",
+            "address": "Center Square Mall, Kochi",
+            "location": "Kochi",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Kantara",
+                    "language": "Kannada",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "luxury",
+            "sofaRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9865321472"
+        },
+        {
+            "theater_id": "KOC003",
+            "name": "INOX Oberon Mall",
+            "address": "Oberon Mall, Kochi",
+            "location": "Kochi",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9823456791"
+        },
+        {
+            "theater_id": "KOC004",
+            "name": "Carnival Cinemas",
+            "address": "MG Road, Kochi",
+            "location": "Kochi",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "rows": 10,
+            "seatsPerRow": 10,
+            "layout_type": "studio",
+            "regularRows": 10,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9988776657"
+        },
+        {
+            "theater_id": "KOC005",
+            "name": "Q Cinemas Gold Souk",
+            "address": "Gold Souk Mall, Kochi",
+            "location": "Kochi",
+            "popular": false,
+            "rows": 10,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "RRR",
+                    "language": "Telugu",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "luxury",
+            "sofaRows": 4,
+            "regularRows": 6,
+            "contact": "+91 9764312892"
+        },
+        {
+            "theater_id": "ALI001",
+            "name": "PVR Aligarh Mall",
+            "address": "Aligarh Mall, Aligarh",
+            "location": "Aligarh",
+            "popular": false,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "standard",
+            "contact": "+91 9876543216"
+        },
+        {
+            "theater_id": "ALI002",
+            "name": "INOX Grand Plaza",
+            "address": "Grand Plaza, Aligarh",
+            "location": "Aligarh",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Kantara",
+                    "language": "Kannada",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "luxury",
+            "sofaRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9823456780"
+        },
+        {
+            "theater_id": "ALI003",
+            "name": "Carnival Cinemas",
+            "address": "Civil Lines, Aligarh",
+            "location": "Aligarh",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9988776658"
+        },
+        {
+            "theater_id": "ALI004",
+            "name": "Cinepolis City Center",
+            "address": "City Center, Aligarh",
+            "location": "Aligarh",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9933445568"
+        },
+        {
+            "theater_id": "ALI005",
+            "name": "MovieTime Aligarh",
+            "address": "Station Road, Aligarh",
+            "location": "Aligarh",
+            "popular": false,
+            "rows": 10,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "RRR",
+                    "language": "Telugu",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "luxury",
+            "sofaRows": 4,
+            "regularRows": 6,
+            "contact": "+91 9764312893"
+        },
+        {
+            "theater_id": "MAT001",
+            "name": "PVR Krishna Plaza",
+            "address": "Krishna Plaza, Mathura",
+            "location": "Mathura",
+            "popular": false,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "standard",
+            "contact": "+91 9876543217"
+        },
+        {
+            "theater_id": "MAT002",
+            "name": "INOX Brij Cineplex",
+            "address": "Brij Cineplex, Mathura",
+            "location": "Mathura",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Kantara",
+                    "language": "Kannada",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "rows": 15,
+            "seatsPerRow": 10,
+            "layout_type": "luxury",
+            "sofaRows": 6,
+            "regularRows": 9,
+            "contact": "+91 9823456781"
+        },
+        {
+            "theater_id": "MAT003",
+            "name": "Carnival Cinemas",
+            "address": "Vrindavan Road, Mathura",
+            "location": "Mathura",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9988776659"
+        },
+        {
+            "theater_id": "MAT004",
+            "name": "Cinepolis Govardhan",
+            "address": "Govardhan Road, Mathura",
+            "location": "Mathura",
+            "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "contact": "+91 9933445569"
+        },
+        {
+            "theater_id": "MAT005",
+            "name": "MovieTime Mathura",
+            "address": "Main Market, Mathura",
+            "location": "Mathura",
+            "popular": false,
+            "rows": 10,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "Jawan",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "RRR",
+                    "language": "Telugu",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "luxury",
+            "sofaRows": 4,
+            "regularRows": 6,
+            "contact": "+91 9764312894"
+        },
+        {
+            "bhopal_theaters": [
+                {
+                    "theater_id": "BHO001",
+                    "name": "INOX, Bhopal",
+                    "address": "MP Nagar, Bhopal",
+                    "location": "Bhopal, Madhya Pradesh",
+                   "popular": false,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "standard",
+                    "contact": "+91 555 123 4567"
+                },
+                {
+                    "theater_id": "BHO002",
+                    "name": "Carnival Cinemas, Bhopal",
+                    "address": "Zone-II, M.P. Nagar, Bhopal",
+                    "location": "Bhopal, Madhya Pradesh",
+                    "popular":false,
+                    "films_showing": [
+                        {
+                            "title": "Kantara",
+                            "language": "Kannada",
+                            "showtimes": [
+                                "10:30 AM",
+                                "2:00 PM",
+                                "6:30 PM",
+                                "9:45 PM"
+                            ]
+                        },
+                        {
+                            "title": "Jawan",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "11:30 AM",
+                                "3:00 PM",
+                                "7:30 PM",
+                                "9:00 PM"
+                            ]
+                        }
+                    ],
+                    "emptySpaces": [
+                        "2-4",
+                        "3-4",
+                        "4-4"
+                    ],
+                    "rows": 15,
+                    "seatsPerRow": 10,
+                    "layout_type": "luxury",
+                    "sofaRows": 6,
+                    "regularRows": 9,
+                    "contact": "+91 555 765 4321"
+                },
+                {
+                    "theater_id": "BHO003",
+                    "name": "PVR Cinemas, Bhopal",
+                    "address": "Habibganj, Bhopal",
+                    "location": "Bhopal, Madhya Pradesh",
+               "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+                    "contact": "+91 555 987 6543"
+                },
+                {
+                    "theater_id": "BHO004",
+                    "name": "Cinepolis, Bhopal",
+                    "address": "Bawaria Kalan, Bhopal",
+                    "location": "Bhopal, Madhya Pradesh",
+                    "popular": true,
+                    "films_showing": [
+                        {
+                            "title": "Oppenheimer",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "10:30 AM",
+                                "2:00 PM",
+                                "6:30 PM",
+                                "9:45 PM"
+                            ]
+                        },
+                        {
+                            "title": "3 Idiots",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "11:30 AM",
+                                "3:00 PM",
+                                "7:30 PM",
+                                "9:00 PM"
+                            ]
+                        }
+                    ],
+                    "layout_type": "balcony",
+                    "rows": 15,
+                    "seatsPerRow": 10,
+                    "premiumRows": 6,
+                    "regularRows": 9,
+                    "emptySpaces": [
+                        "2-4",
+                        "3-4",
+                        "4-4"
+                    ],
+                    "contact": "+91 555 321 6789"
+                },
+                {
+                    "theater_id": "BHO005",
+                    "name": "Big Cinemas, Bhopal",
+                    "address": "Gandhi Nagar, Bhopal",
+                    "location": "Bhopal, Madhya Pradesh",
+                    "popular": false,
+                    "rows": 10,
+                    "seatsPerRow": 10,
+                    "films_showing": [
+                        {
+                            "title": "Jawan",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "10:30 AM",
+                                "2:00 PM",
+                                "6:30 PM",
+                                "9:45 PM"
+                            ]
+                        },
+                        {
+                            "title": "RRR",
+                            "language": "Telugu",
+                            "showtimes": [
+                                "11:30 AM",
+                                "3:00 PM",
+                                "7:30 PM",
+                                "9:00 PM"
+                            ]
+                        }
+                    ],
+                    "emptySpaces": [
+                        "2-4",
+                        "3-4",
+                        "4-4"
+                    ],
+                    "layout_type": "luxury",
+                    "sofaRows": 4,
+                    "regularRows": 6,
+                    "contact": "+91 555 111 2222"
+                }
+            ],
+            "lucknow_theaters": [
+                {
+                    "theater_id": "LUC001",
+                    "name": "PVR Cinemas, Lucknow",
+                    "address": "Gomti Nagar, Lucknow",
+                    "location": "Lucknow, Uttar Pradesh",
+                   "popular": true,
+            "rows": 15,
+            "seatsPerRow": 10,
+            "films_showing": [
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "Inception",
+                    "language": "English",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                },
+                {
+                    "title": "Dangal",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "12:30 PM",
+                        "3:00 PM",
+                        "6:30 PM",
+                        "8:45 PM"
+                    ]
+                }
+            ],
+            "vipRows": 3,
+            "premiumRows": 5,
+            "regularRows": 7,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+            "layout_type": "standard",
+                    "contact": "+91 123 456 7890"
+                },
+                {
+                    "theater_id": "LUC002",
+                    "name": "Cinepolis, Lucknow",
+                    "address": "Hazratganj, Lucknow",
+                    "location": "Lucknow, Uttar Pradesh",
+                    "popular":false,
+                    "films_showing": [
+                        {
+                            "title": "Kantara",
+                            "language": "Kannada",
+                            "showtimes": [
+                                "10:30 AM",
+                                "2:00 PM",
+                                "6:30 PM",
+                                "9:45 PM"
+                            ]
+                        },
+                        {
+                            "title": "Jawan",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "11:30 AM",
+                                "3:00 PM",
+                                "7:30 PM",
+                                "9:00 PM"
+                            ]
+                        }
+                    ],
+                    "emptySpaces": [
+                        "2-4",
+                        "3-4",
+                        "4-4"
+                    ],
+                    "rows": 15,
+                    "seatsPerRow": 10,
+                    "layout_type": "luxury",
+                    "sofaRows": 6,
+                    "regularRows": 9,
+                    "contact": "+91 987 654 3210"
+                },
+                {
+                    "theater_id": "LUC003",
+                    "name": "Wave Cinemas, Lucknow",
+                    "address": "Alambagh, Lucknow",
+                    "location": "Lucknow, Uttar Pradesh",
+                   "popular": false,
+            "films_showing": [
+                {
+                    "title": "Oppenheimer",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "10:30 AM",
+                        "2:00 PM",
+                        "6:30 PM",
+                        "9:45 PM"
+                    ]
+                },
+                {
+                    "title": "3 Idiots",
+                    "language": "Hindi",
+                    "showtimes": [
+                        "11:30 AM",
+                        "3:00 PM",
+                        "7:30 PM",
+                        "9:00 PM"
+                    ]
+                }
+            ],
+            "layout_type": "balcony",
+            "rows": 15,
+            "seatsPerRow": 10,
+            "premiumRows": 6,
+            "regularRows": 9,
+            "emptySpaces": [
+                "2-4",
+                "3-4",
+                "4-4"
+            ],
+                    "contact": "+91 555 555 5555"
+                },
+                {
+                    "theater_id": "LUC004",
+                    "name": "Inox, Lucknow",
+                    "address": "Sultanpur Road, Lucknow",
+                    "location": "Lucknow, Uttar Pradesh",
+                    "popular": true,
+                    "films_showing": [
+                        {
+                            "title": "Oppenheimer",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "10:30 AM",
+                                "2:00 PM",
+                                "6:30 PM",
+                                "9:45 PM"
+                            ]
+                        },
+                        {
+                            "title": "3 Idiots",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "11:30 AM",
+                                "3:00 PM",
+                                "7:30 PM",
+                                "9:00 PM"
+                            ]
+                        }
+                    ],
+                    "layout_type": "balcony",
+                    "rows": 15,
+                    "seatsPerRow": 10,
+                    "premiumRows": 6,
+                    "regularRows": 9,
+                    "emptySpaces": [
+                        "2-4",
+                        "3-4",
+                        "4-4"
+                    ],
+                    "contact": "+91 999 123 4567"
+                },
+                {
+                    "theater_id": "LUC005",
+                    "name": "Cinepolis, Lucknow",
+                    "address": "Rajajipuram, Lucknow",
+                    "location": "Lucknow, Uttar Pradesh",
+                    "popular": false,
+                    "rows": 10,
+                    "seatsPerRow": 10,
+                    "films_showing": [
+                        {
+                            "title": "Jawan",
+                            "language": "Hindi",
+                            "showtimes": [
+                                "10:30 AM",
+                                "2:00 PM",
+                                "6:30 PM",
+                                "9:45 PM"
+                            ]
+                        },
+                        {
+                            "title": "RRR",
+                            "language": "Telugu",
+                            "showtimes": [
+                                "11:30 AM",
+                                "3:00 PM",
+                                "7:30 PM",
+                                "9:00 PM"
+                            ]
+                        }
+                    ],
+                    "emptySpaces": [
+                        "2-4",
+                        "3-4",
+                        "4-4"
+                    ],
+                    "layout_type": "luxury",
+                    "sofaRows": 4,
+                    "regularRows": 6,
+                    "contact": "+91 112 233 4455"
+                }
+            ],
+            "pune_theaters": [
+                {
+                    "theater_id": 1,
+                    "name": "PVR Cinemas, Pune",
+                    "address": "Viman Nagar, Pune",
+                    "location": "Pune, Maharashtra",
+                    "popular": true,
+                    "film_showing": [
+                        "Movie A",
+                        "Movie B",
+                        "Movie C"
+                    ],
+                    "seat_layout": {
+                        "type": "luxury",
+                        "sofa": 12,
+                        "regular_rows": 18
+                    },
+                    "seat_capacity": 210,
+                    "contact": "+91 123 654 9870"
+                },
+                {
+                    "theater_id": 2,
+                    "name": "INOX, Pune",
+                    "address": "Koregaon Park, Pune",
+                    "location": "Pune, Maharashtra",
+                    "popular": true,
+                    "film_showing": [
+                        "Movie D",
+                        "Movie E",
+                        "Movie F"
+                    ],
+                    "seat_layout": {
+                        "type": "standard",
+                        "vip": 10,
+                        "premium": 15,
+                        "regular": 30
+                    },
+                    "seat_capacity": 250,
+                    "contact": "+91 987 123 4567"
+                },
+                {
+                    "theater_id": 3,
+                    "name": "Carnival Cinemas, Pune",
+                    "address": "Shivaji Nagar, Pune",
+                    "location": "Pune, Maharashtra",
+                    "popular": false,
+                    "film_showing": [
+                        "Movie G",
+                        "Movie H",
+                        "Movie I"
+                    ],
+                    "seat_layout": {
+                        "type": "balcony",
+                        "sofa": 8,
+                        "regular_rows": 15
+                    },
+                    "seat_capacity": 180,
+                    "contact": "+91 555 123 7890"
+                },
+                {
+                    "theater_id": 4,
+                    "name": "Sanjeevani Cinemas, Pune",
+                    "address": "Hadapsar, Pune",
+                    "location": "Pune, Maharashtra",
+                    "popular": true,
+                    "film_showing": [
+                        "Movie J",
+                        "Movie K",
+                        "Movie L"
+                    ],
+                    "seat_layout": {
+                        "type": "luxury",
+                        "sofa": 10,
+                        "regular_rows": 16
+                    },
+                    "seat_capacity": 220,
+                    "contact": "+91 555 321 4321"
+                },
+                {
+                    "theater_id": 5,
+                    "name": "E-Square Cinemas, Pune",
+                    "address": "Shivaji Nagar, Pune",
+                    "location": "Pune, Maharashtra",
+                    "popular": false,
+                    "film_showing": [
+                        "Movie M",
+                        "Movie N",
+                        "Movie O"
+                    ],
+                    "seat_layout": {
+                        "type": "studio",
+                        "regular_rows": 28
+                    },
+                    "seat_capacity": 270,
+                    "contact": "+91 555 654 3210"
+                }
+            ]
+        }
+    ]
