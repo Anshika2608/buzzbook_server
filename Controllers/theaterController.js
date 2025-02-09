@@ -92,22 +92,38 @@ const addTheater = async (req, res) => {
 
 
 const getSeatLayout = async (req, res) => {
-    const { name } = req.params;
+    const { name, movie_title, showtime } = req.params;
+
     try {
         const theaterData = await theater.findOne({
-            name: { $regex: new RegExp(`^${name}`, "i") }
+            name: { $regex: new RegExp(`^${name}$`, "i") },
+           
         });
-        if (!theaterData) {
-            return res.status(400).json({ message: "Theater not found " })
-        }
-        else {
-            return res.status(201).json({ message: "Seat layout fetched successfully", layout: theaterData.seating_layout })
-        }
-    } catch (error) {
-        return res.status(500).json({ message: "Error in fetching seat_layout", error: error.message })
-    }
 
-}
+        if (!theaterData) {
+            return res.status(404).json({ message: "Theater not found." });
+        }
+
+        const movie = theaterData.films_showing.find(film => film.title === movie_title);
+        if (!movie) {
+            return res.status(404).json({ message: "Movie not found in this theater." });
+        }
+
+        const show = movie.showtimes.find(st => st.time === showtime);
+        if (!show) {
+            return res.status(404).json({ message: "Showtime not found for this movie." });
+        }
+
+        return res.status(200).json({
+            message: "Seat layout fetched successfully.",
+            layout: show.seating_layout
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Error fetching seat layout", error: error.message });
+    }
+};
+
 const getTheaterForMovie = async (req, res) => {
 
     try {
@@ -142,20 +158,14 @@ const bookSeat = async (req, res) => {
         if (!theaters) {
             return res.status(404).json({ message: "Theater not found." });
         }
-
-       
         const movie = theaters.films_showing.find(film => film.title === movie_title);
         if (!movie) {
             return res.status(404).json({ message: "Movie not found in this theater." });
         }
-
-        
         const show = movie.showtimes.find(st => st.time === showtime);
         if (!show) {
             return res.status(404).json({ message: "Showtime not found for this movie." });
         }
-
-        
         let seatFound = false;
         show.seating_layout.forEach(row => {
             row.forEach(seat => {
@@ -168,13 +178,10 @@ const bookSeat = async (req, res) => {
                 }
             });
         });
-
         if (!seatFound) {
             return res.status(404).json({ message: "Seat not found." });
         }
-
         await theaters.save();
-
         res.status(200).json({ success: true, message: "Seat booked successfully", theaters });
     } catch (error) {
         return res.status(500).json({ message: "Error booking the seat", error: error.message });
