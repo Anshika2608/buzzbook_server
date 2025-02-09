@@ -24,21 +24,17 @@ const addTheater = async (req, res) => {
             seating_layout, rows, seatsPerRow, premiumRows, vipRows, regularRows, reclinerRows, sofaRows, emptySpaces
         } = req.body;
 
-        // Convert rows & seatsPerRow to numbers to avoid type issues
         rows = rows ? Number(rows) : null;
         seatsPerRow = seatsPerRow ? Number(seatsPerRow) : null;
 
-        // Validate required fields
         if (!theater_id || !name || !location || !address || !layout_type || popular === undefined || !films_showing || !contact || !rows || !seatsPerRow) {
             return res.status(400).json({ message: "Fill all the required fields!", received: { rows, seatsPerRow } });
         }
 
-        // Validate `seating_layout`
         if (!seating_layout || !Array.isArray(seating_layout) || seating_layout.length === 0) {
             return res.status(400).json({ message: "Invalid seating layout. It must be a non-empty array." });
         }
 
-        // Check if theater already exists (by `theater_id` or `name + address`)
         const existingTheater = await theater.findOne({ theater_id });
         const existingTheaterName = await theater.findOne({
             name: { $regex: new RegExp(`^${name}$`, "i") },
@@ -52,20 +48,17 @@ const addTheater = async (req, res) => {
             return res.status(400).json({ message: "Theater with this name already exists in this location!" });
         }
 
-        // Calculate seating capacity correctly
         const seating_capacity = rows * seatsPerRow;
 
-        // Format Films with Showtimes
         const formattedFilms = films_showing.map(film => ({
             title: film.title,
             language: film.language,
             showtimes: film.showtimes.map(time => ({
                 time,
-                seating_layout  // Ensure this matches schema
+                seating_layout  
             }))
         }));
 
-        // Create a new Theater document
         const newTheater = new theater({
             theater_id,
             name,
@@ -137,6 +130,54 @@ const getTheaterForMovie = async (req, res) => {
     }
 }
 const bookSeat = async (req, res) => {
+    try {
+        const { theater_id, movie_title, showtime, seat_number } = req.body;
 
-}
+        if (!theater_id || !movie_title || !showtime || !seat_number) {
+            return res.status(400).json({ message: "All fields are required: theater_id, movie_title, showtime, seat_number." });
+        }
+
+        
+        let theaters = await theater.findOne({ theater_id });
+        if (!theaters) {
+            return res.status(404).json({ message: "Theater not found." });
+        }
+
+       
+        const movie = theaters.films_showing.find(film => film.title === movie_title);
+        if (!movie) {
+            return res.status(404).json({ message: "Movie not found in this theater." });
+        }
+
+        
+        const show = movie.showtimes.find(st => st.time === showtime);
+        if (!show) {
+            return res.status(404).json({ message: "Showtime not found for this movie." });
+        }
+
+        
+        let seatFound = false;
+        show.seating_layout.forEach(row => {
+            row.forEach(seat => {
+                if (seat.seat_number === seat_number) {
+                    if (seat.is_booked) {
+                        return res.status(400).json({ message: "Seat is already booked." });
+                    }
+                    seat.is_booked = true;  
+                    seatFound = true;
+                }
+            });
+        });
+
+        if (!seatFound) {
+            return res.status(404).json({ message: "Seat not found." });
+        }
+
+        await theaters.save();
+
+        res.status(200).json({ success: true, message: "Seat booked successfully", theaters });
+    } catch (error) {
+        return res.status(500).json({ message: "Error booking the seat", error: error.message });
+    }
+};
 module.exports = { getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat }

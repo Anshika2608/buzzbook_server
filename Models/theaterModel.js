@@ -8,7 +8,7 @@ const seatSchema = new mongoose.Schema({
 
 const showtimeSchema = new mongoose.Schema({
     time: { type: String, required: true },
-    seating_layout: [[seatSchema]]  // 2D Array to store seat data
+    seating_layout: [[seatSchema]]  
 });
 
 const filmSchema = new mongoose.Schema({
