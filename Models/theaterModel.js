@@ -7,11 +7,13 @@ const seatSchema = new mongoose.Schema({
 });
 
 const showtimeSchema = new mongoose.Schema({
+    showtime_id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     time: { type: String, required: true },
     seating_layout: [[seatSchema]]  
 });
 
 const filmSchema = new mongoose.Schema({
+    film_id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     title: { type: String, required: true },
     language: { type: String, required: true },
     showtimes: [showtimeSchema] 
