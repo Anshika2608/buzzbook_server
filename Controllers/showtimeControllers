@@ -94,6 +94,22 @@ const addShowtime = async (req, res) => {
 
 
 const getShowtime=async(req,res)=>{
-
+    const{theater_id,movie_title}=req.body;
+    if(!theater_id || !movie_title){
+        return res.status(400).json({message:"Fill all the required fields"})
+    }
+    try{
+      const theaterData=await Theater.findOne({theater_id})
+      if(!theaterData){
+        return res.status(404).json({message:"theater not found!"})
+      }
+      const movie=theaterData.films_showing.find(film => film.title.toLowerCase().trim() === movie_title.toLowerCase().trim())
+      if(!movie){
+        return res.status(404).json({message:"movie not found"})
+      }
+      return res.status(201).json({message:"showtimes recieved successfully",showtimes:movie.showtimes})
+    }catch(error){
+        return res.status(500).json({message:"Error while recieving the showtimes!",error:error.message})
+    }
 }
 module.exports = { updateShowtime ,addShowtime,getShowtime};
