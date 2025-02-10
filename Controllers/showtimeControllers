@@ -35,7 +35,65 @@ const updateShowtime = async (req, res) => {
     return res.status(500).json({ message: "Error updating the showtime", error: error.message });
   }
 };
-const addShowtime=async(req,res)=>{
-    
+const addShowtime = async (req, res) => {
+    const { movie_title, theater_id, showtime } = req.body;
+
+
+    if (!movie_title || !theater_id || !showtime) {
+        return res.status(400).json({ message: "Fill all the required fields" });
+    }
+
+    try {
+        const theaterData = await Theater.findOne({ theater_id });
+
+        if (!theaterData) {
+            return res.status(404).json({ message: "Theater not found" });
+        }
+
+
+        const movie = theaterData.films_showing.find(film => film.title === movie_title);
+        if (!movie) {
+            return res.status(404).json({ message: "Movie not found in this theater" });
+        }
+
+
+        if (!Array.isArray(movie.showtimes)) {
+            movie.showtimes = [];
+        }
+
+
+        const existingShowtime = movie.showtimes.some(s => {
+            return s.time.toLowerCase().trim() === showtime.toLowerCase().trim();
+        });
+
+        if (existingShowtime) {
+            return res.status(409).json({ message: "Showtime already exists for this movie" });
+        }
+
+
+        const newShowtime = {
+            _id: new mongoose.Types.ObjectId(),
+            time: showtime.trim(),
+            seating_layout: req.body.seating_layout || []
+        };
+
+        movie.showtimes.push(newShowtime);
+        await theaterData.save();
+
+
+        return res.status(201).json({ 
+            message: "Showtime added successfully!", 
+            showtime: newShowtime 
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Error adding the showtime", error: error.message });
+    }
+};
+
+
+
+const getShowtime=async(req,res)=>{
+
 }
-module.exports = { updateShowtime ,addShowtime};
+module.exports = { updateShowtime ,addShowtime,getShowtime};
