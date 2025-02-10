@@ -107,9 +107,11 @@ const getShowtime=async(req,res)=>{
       if(!movie){
         return res.status(404).json({message:"movie not found"})
       }
-      return res.status(201).json({message:"showtimes recieved successfully",showtimes:movie.showtimes})
+      const showtimeTimes=movie.showtimes.map(show=>show.time)
+      return res.status(201).json({message:"showtimes recieved successfully",showtimes:showtimeTimes})
     }catch(error){
         return res.status(500).json({message:"Error while recieving the showtimes!",error:error.message})
     }
 }
+
 module.exports = { updateShowtime ,addShowtime,getShowtime};
