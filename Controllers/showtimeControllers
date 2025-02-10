@@ -107,9 +107,46 @@ const getShowtime=async(req,res)=>{
       if(!movie){
         return res.status(404).json({message:"movie not found"})
       }
-      return res.status(201).json({message:"showtimes recieved successfully",showtimes:movie.showtimes})
+      const showtimeTimes=movie.showtimes.map(show=>show.time)
+      return res.status(201).json({message:"showtimes recieved successfully",showtimes:showtimeTimes})
     }catch(error){
         return res.status(500).json({message:"Error while recieving the showtimes!",error:error.message})
     }
 }
-module.exports = { updateShowtime ,addShowtime,getShowtime};
+const deleteShowtime=async(req,res)=>{
+const {theater_id,movie_title,showtime}=req.body;
+if(!theater_id || !movie_title || !showtime ){
+    return res.status(400).json({message:"fill all the required fields"})
+}
+try{
+  const theaterData=await Theater.findOne({theater_id})
+  if(!theaterData){
+    return res.status(404).json({message:"Theater not found!"})
+  }
+  const movie = theaterData.films_showing.find(
+    film => film.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
+);
+
+if (!movie) {
+    return res.status(404).json({ message: "Movie not found in this theater!" });
+}
+
+const showtimeIndex = movie.showtimes.findIndex(
+    show => show.time.toLowerCase().trim() === showtime.toLowerCase().trim()
+);
+
+if (showtimeIndex === -1) {
+    return res.status(404).json({ message: "Showtime not found!" });
+}
+
+movie.showtimes.splice(showtimeIndex, 1);
+await theaterData.save();
+
+return res.status(200).json({ message: "Showtime deleted successfully!" });
+
+}catch(error){
+    return res.status(500).json({message:"Error deleting the showtime!"})
+}
+
+}
+module.exports = { updateShowtime ,addShowtime,getShowtime,deleteShowtime};
