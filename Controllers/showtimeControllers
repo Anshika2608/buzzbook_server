@@ -1,23 +1,41 @@
-const theater=require("../Models/theaterModel")
-const updateShowtime=async(req,res)=>{
-      const{theater_id,movie_title}=req.body;
-      if(!theater_id || !movie_title){
-        return res.status(400).json({message:"fill all the required fields!"})
-      }
-      try{
-        const theaterData=theater.findOne({theater_id});
-        if(!theaterData){
-            return res.status(401).json({message:"Theater not found!"})
-        }
-        const movie=theaterData.films_showing.find(film=>film.title==movie_title);
-        if(!movie){
-            return res.staus(401).json({message:"movie not found"})
-        }
-        
+const mongoose = require("mongoose");
+const Theater = require("../Models/theaterModel");
 
-
-      }catch(error){
-        return res.status(500).json({message:"Error in updating the showtime",error:error.message})
-      }
+const updateShowtime = async (req, res) => {
+  const { theater_id, movie_title, showtime_id, new_time } = req.body;
+  if (!theater_id || !movie_title || !showtime_id || !new_time) {
+    return res.status(400).json({ message: "Fill all the required fields!" });
+  }
+  try {
+    const theaterData = await Theater.findOne({ theater_id });
+    if (!theaterData) {
+      return res.status(404).json({ message: "Theater not found!" });
+    }
+    if (!theaterData.films_showing || !Array.isArray(theaterData.films_showing)) {
+      return res.status(500).json({ message: "Invalid theater data. No films found." });
+    }
+    const movie = theaterData.films_showing.find(film => film.title === movie_title);
+    if (!movie) {
+      return res.status(404).json({ message: "Movie not found!" });
+    }
+    if (!movie.showtimes || !Array.isArray(movie.showtimes)) {
+      return res.status(500).json({ message: "Invalid movie data. No showtimes found." });
+    }
+    const showtime = movie.showtimes.find(show => show._id.toString() === showtime_id);
+    if (!showtime) {
+      return res.status(404).json({ message: "Showtime not found!" });
+    }
+    showtime.time = new_time;
+    await theaterData.save();
+    return res.status(200).json({
+      message: "Showtime updated successfully!",
+      updatedShowtime: showtime
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating the showtime", error: error.message });
+  }
+};
+const addShowtime=async(req,res)=>{
+    
 }
-module.exports={updateShowtime}
+module.exports = { updateShowtime ,addShowtime};
