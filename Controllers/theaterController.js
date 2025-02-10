@@ -12,11 +12,7 @@ const getTheater = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: "Error in fetching list of theaters", error: error.message })
     }
-
-
 }
-
-
 const addTheater = async (req, res) => {
     try {
         let {
@@ -34,13 +30,11 @@ const addTheater = async (req, res) => {
         if (!seating_layout || !Array.isArray(seating_layout) || seating_layout.length === 0) {
             return res.status(400).json({ message: "Invalid seating layout. It must be a non-empty array." });
         }
-
         const existingTheater = await theater.findOne({ theater_id });
         const existingTheaterName = await theater.findOne({
             name: { $regex: new RegExp(`^${name}$`, "i") },
             address: { $regex: new RegExp(`^${address}$`, "i") }
         });
-
         if (existingTheater) {
             return res.status(400).json({ message: "Theater ID must be unique. A theater with this ID already exists." });
         }
@@ -86,24 +80,15 @@ const addTheater = async (req, res) => {
         return res.status(500).json({ message: "Error in creating new theater", error: error.message });
     }
 };
-
-
-
-
-
 const getSeatLayout = async (req, res) => {
     const { name, movie_title, showtime } = req.params;
-
     try {
         const theaterData = await theater.findOne({
-            name: { $regex: new RegExp(`^${name}$`, "i") },
-           
+            name: { $regex: new RegExp(`^${name}$`, "i") }, 
         });
-
         if (!theaterData) {
             return res.status(404).json({ message: "Theater not found." });
         }
-
         const movie = theaterData.films_showing.find(film => film.title === movie_title);
         if (!movie) {
             return res.status(404).json({ message: "Movie not found in this theater." });
@@ -123,7 +108,6 @@ const getSeatLayout = async (req, res) => {
         return res.status(500).json({ message: "Error fetching seat layout", error: error.message });
     }
 };
-
 const getTheaterForMovie = async (req, res) => {
 
     try {
