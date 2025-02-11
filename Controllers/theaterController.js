@@ -171,4 +171,7 @@ const bookSeat = async (req, res) => {
         return res.status(500).json({ message: "Error booking the seat", error: error.message });
     }
 };
-module.exports = { getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat }
+const deleteTheater=async(req,res)=>{
+
+}
+module.exports = {deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat }
