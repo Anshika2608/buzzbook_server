@@ -1,4 +1,5 @@
 const movie = require("../Models/movieModel")
+const Theater=require("../Models/theaterModel")
 const cloudinary = require("../Middleware/Cloudinary"); 
 const getMovie = async (req, res) => {
     try {
@@ -68,4 +69,41 @@ const addMovie = async (req, res) => {
     }
 
 }
-module.exports = { getMovie, addMovie }
+const getMovieFromLocation = async (req, res) => {
+    const { location } = req.body;
+
+    if (!location) {
+        return res.status(400).json({ message: "Fill all the required fields" });
+    }
+
+    try {
+        const theaters = await Theater.find({ location: { $regex: new RegExp("^" + location, "i") } });
+
+        if (theaters.length === 0) {
+            return res.status(404).json({ message: "No theaters found in this location" });
+        }
+
+        const filmTitles = new Set();
+        theaters.forEach(theater => {
+            theater.films_showing.forEach(film => {
+                filmTitles.add(film.title);
+            });
+        });
+
+        if (filmTitles.size === 0) {
+            return res.status(404).json({ message: "No movies found in this location" });
+        }
+
+        const movies = await movie.find({ title: { $in: Array.from(filmTitles) } });
+
+        return res.status(200).json({ movies });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error retrieving the movies based on location",
+            error: error.message
+        });
+    }
+};
+
+module.exports = { getMovie, addMovie,getMovieFromLocation }
