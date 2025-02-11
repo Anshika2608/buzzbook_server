@@ -178,8 +178,6 @@ const deleteTheater = async (req, res) => {
         if (!theater_id) {
             return res.status(400).json({ message: "Theater ID is required" });
         }
-
-        // Find and delete the theater
         const deletedTheater = await theater.findOneAndDelete({ theater_id });
 
         if (!deletedTheater) {
