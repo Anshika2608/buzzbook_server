@@ -171,7 +171,24 @@ const bookSeat = async (req, res) => {
         return res.status(500).json({ message: "Error booking the seat", error: error.message });
     }
 };
-const deleteTheater=async(req,res)=>{
+const deleteTheater = async (req, res) => {
+    try {
+        const { theater_id } = req.params;
 
-}
+        if (!theater_id) {
+            return res.status(400).json({ message: "Theater ID is required" });
+        }
+
+        // Find and delete the theater
+        const deletedTheater = await theater.findOneAndDelete({ theater_id });
+
+        if (!deletedTheater) {
+            return res.status(404).json({ message: "Theater not found" });
+        }
+
+        return res.status(200).json({ message: "Theater deleted successfully", deletedTheater });
+    } catch (error) {
+        return res.status(500).json({ message: "Error deleting theater", error: error.message });
+    }
+};
 module.exports = {deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat }
