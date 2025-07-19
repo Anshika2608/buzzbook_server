@@ -3,7 +3,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const passport = require("passport");
-
+const nodemailer=require("nodemailer");
+const keysecret = process.env.SECRET_KEY
+//emailconfig
+const transporter=nodemailer.createTransport({
+  service:"gmail",
+  auth:{
+    user:process.env.EMAIL,
+    pass:process.env.PASSWORD
+  }
+})
 const registerUser = async (req, res) => {
     const { name, email, password, cpassword, recaptchaToken } = req.body;
     if (!name || !email || !password || !cpassword || !recaptchaToken) {
@@ -111,6 +120,91 @@ const validUser = async (req, res) => {
 googleLogin = passport.authenticate("google", {
     scope: ["profile", "email"]
 });
+const sendemaillink=async(req,res)=>{
 
+ const {emailaddress}=req.body;
+ if(!emailaddress){
+  res.status(401).json({status:401,message:"Enter your email"})
+ }
 
-module.exports = { registerUser, loginUser, validUser,googleLogin }
+  try{
+    const userfind=await users.findOne({email:emailaddress})
+    if (!userfind) {
+      return res.status(401).json({ status: 401, message: "User not found" });
+  }
+    const token = jwt.sign({_id:userfind._id},keysecret,{
+      expiresIn:"1d"
+  });
+  const setusertoken = await users.findByIdAndUpdate({_id:userfind._id},{verifytoken:token},{new:true});
+  if(setusertoken){
+    const mailOptions = {
+        from:process.env.EMAIL,
+        to:emailaddress,
+        subject:"Sending Email For password Reset",
+        text:`This Link Valid For 2 MINUTES http://localhost:5173/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
+    }
+
+    transporter.sendMail(mailOptions,(error,info)=>{
+        if(error){
+            console.log("error",error);
+            res.status(401).json({status:401,message:"email not send"})
+        }else{
+            console.log("Email sent",info.response);
+            res.status(201).json({status:201,message:"Email sent Successfully"})
+        }
+    })
+
+}
+
+}
+ 
+  catch(err){
+    console.error("Catch block error:", err);
+    res.status(401).json({status:401,message:"invalid user"})
+  }
+}
+// verify user for forgot password time
+
+const verifyForgot=async(req,res)=>{
+  const {id,token}=req.params;
+  try{
+    const validuser= await users.findOne({_id:id,verifytoken:token})
+    const verifyToken=jwt.verify(token,keysecret)
+    if(validuser && verifyToken._id){
+         res.status(201).json({status:201,validuser})
+    }else{
+      res.status(401).json({status:401,message:"user not exist"})
+    }
+  }catch(err){
+    res.status(401).json({status:401,message:err})
+  }
+}
+const changePassword=async(req,res)=>{
+  const {id,token} = req.params;
+
+  const {passwords} = req.body;
+
+  try {
+      const validuser = await users.findOne({_id:id,verifytoken:token});
+      if (!validUser) {
+        return res.status(401).json({ status: 401, message: "User does not exist" });
+    }
+      const verifyToken = jwt.verify(token,keysecret);
+
+      if(validuser && verifyToken._id){
+          const newpassword = await bcrypt.hash(passwords,12);
+
+          const setnewuserpass = await users.findByIdAndUpdate({_id:id},{password:newpassword});
+
+          setnewuserpass.save();
+          res.status(201).json({status:201,setnewuserpass})
+
+      }else{
+          res.status(401).json({status:401,message:"user not exist"})
+      }
+  } catch (error) {
+      res.status(401).json({status:401,error})
+  }
+}
+
+module.exports = { registerUser, loginUser, validUser,googleLogin ,sendemaillink,verifyForgot,changePassword}
