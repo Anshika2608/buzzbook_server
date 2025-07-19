@@ -11,11 +11,16 @@ router.get("/auth/google",googleLogin);
 
 
 router.get("/auth/google/callback",
-    passport.authenticate("google", { 
-        
-        failureRedirect: "/login",
-        successRedirect:"/dashboard" }),
+  passport.authenticate("google", {
+    failureRedirect: "/login",
+    session: false  // optional, only if you're not using sessions
+  }),
+  (req, res) => {
+    
+    res.redirect("http://localhost:3000/dashboard");
+  }
 );
+
 router.post("/sendpasswordLink",sendemaillink)
 
 router.get("/ForgotPassword/:id/:token",verifyForgot)

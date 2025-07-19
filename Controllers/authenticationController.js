@@ -3,15 +3,15 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const passport = require("passport");
-const nodemailer=require("nodemailer");
+const nodemailer = require("nodemailer");
 const keysecret = process.env.SECRET_KEY
 //emailconfig
-const transporter=nodemailer.createTransport({
-  service:"gmail",
-  auth:{
-    user:process.env.EMAIL,
-    pass:process.env.PASSWORD
-  }
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
+    }
 })
 const registerUser = async (req, res) => {
     const { name, email, password, cpassword, recaptchaToken } = req.body;
@@ -32,9 +32,13 @@ const registerUser = async (req, res) => {
             }
         );
 
-        if (!response.data.success) {
-            return res.status(400).json({ message: "reCAPTCHA validation failed!" });
+        if (!response.data.success || response.data.score < 0.5) {
+            return res.status(400).json({
+                message: "reCAPTCHA validation failed or suspicious activity detected!",
+                score: response.data.score
+            });
         }
+
         const nameRegex = /^[a-zA-Z ]{2,40}$/;
         const preuser = await users.findOne({ email: email });
         if (preuser) {
@@ -79,9 +83,13 @@ const loginUser = async (req, res) => {
             }
         );
         console.log("reCAPTCHA API Response:", response.data);
-        if (!response.data.success) {
-            return res.status(400).json({ message: "reCAPTCHA validation failed!", details: response.data });
+        if (!response.data.success || response.data.score < 0.5) {
+            return res.status(400).json({
+                message: "reCAPTCHA validation failed or suspicious activity detected!",
+                score: response.data.score
+            });
         }
+
         const preUser = await users.findOne({ email: email });
         if (!preUser) {
             return res.status(400).json({ message: "User does not exist!" });
@@ -115,96 +123,94 @@ const validUser = async (req, res) => {
         res.status(401).json({ status: 401, error });
     }
 };
-
-
 googleLogin = passport.authenticate("google", {
     scope: ["profile", "email"]
 });
-const sendemaillink=async(req,res)=>{
+const sendemaillink = async (req, res) => {
 
- const {emailaddress}=req.body;
- if(!emailaddress){
-  res.status(401).json({status:401,message:"Enter your email"})
- }
-
-  try{
-    const userfind=await users.findOne({email:emailaddress})
-    if (!userfind) {
-      return res.status(401).json({ status: 401, message: "User not found" });
-  }
-    const token = jwt.sign({_id:userfind._id},keysecret,{
-      expiresIn:"20m"
-  });
-  const setusertoken = await users.findByIdAndUpdate({_id:userfind._id},{verifytoken:token},{new:true});
-  if(setusertoken){
-    const mailOptions = {
-        from:process.env.EMAIL,
-        to:emailaddress,
-        subject:"Sending Email For password Reset",
-        text:`This Link Valid For 20 MINUTES http://localhost:5173/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
+    const { emailaddress } = req.body;
+    if (!emailaddress) {
+        res.status(401).json({ status: 401, message: "Enter your email" })
     }
 
-    transporter.sendMail(mailOptions,(error,info)=>{
-        if(error){
-            console.log("error",error);
-            res.status(401).json({status:401,message:"email not send"})
-        }else{
-            console.log("Email sent",info.response);
-            res.status(201).json({status:201,message:"Email sent Successfully"})
+    try {
+        const userfind = await users.findOne({ email: emailaddress })
+        if (!userfind) {
+            return res.status(401).json({ status: 401, message: "User not found" });
         }
-    })
+        const token = jwt.sign({ _id: userfind._id }, keysecret, {
+            expiresIn: "20m"
+        });
+        const setusertoken = await users.findByIdAndUpdate({ _id: userfind._id }, { verifytoken: token }, { new: true });
+        if (setusertoken) {
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: emailaddress,
+                subject: "Sending Email For password Reset",
+                text: `This Link Valid For 20 MINUTES http://localhost:5173/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
+            }
 
-}
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log("error", error);
+                    res.status(401).json({ status: 401, message: "email not send" })
+                } else {
+                    console.log("Email sent", info.response);
+                    res.status(201).json({ status: 201, message: "Email sent Successfully" })
+                }
+            })
 
-}
- 
-  catch(err){
-    console.error("Catch block error:", err);
-    res.status(401).json({status:401,message:"invalid user"})
-  }
+        }
+
+    }
+
+    catch (err) {
+        console.error("Catch block error:", err);
+        res.status(401).json({ status: 401, message: "invalid user" })
+    }
 }
 // verify user for forgot password time
 
-const verifyForgot=async(req,res)=>{
-  const {id,token}=req.params;
-  try{
-    const validuser= await users.findOne({_id:id,verifytoken:token})
-    const verifyToken=jwt.verify(token,keysecret)
-    if(validuser && verifyToken._id){
-         res.status(201).json({status:201,validuser})
-    }else{
-      res.status(401).json({status:401,message:"user not exist"})
+const verifyForgot = async (req, res) => {
+    const { id, token } = req.params;
+    try {
+        const validuser = await users.findOne({ _id: id, verifytoken: token })
+        const verifyToken = jwt.verify(token, keysecret)
+        if (validuser && verifyToken._id) {
+            res.status(201).json({ status: 201, validuser })
+        } else {
+            res.status(401).json({ status: 401, message: "user not exist" })
+        }
+    } catch (err) {
+        res.status(401).json({ status: 401, message: err })
     }
-  }catch(err){
-    res.status(401).json({status:401,message:err})
-  }
 }
-const changePassword=async(req,res)=>{
-  const {id,token} = req.params;
+const changePassword = async (req, res) => {
+    const { id, token } = req.params;
 
-  const {passwords} = req.body;
+    const { passwords } = req.body;
 
-  try {
-      const validuser = await users.findOne({_id:id,verifytoken:token});
-      if (!validUser) {
-        return res.status(401).json({ status: 401, message: "User does not exist" });
+    try {
+        const validuser = await users.findOne({ _id: id, verifytoken: token });
+        if (!validUser) {
+            return res.status(401).json({ status: 401, message: "User does not exist" });
+        }
+        const verifyToken = jwt.verify(token, keysecret);
+
+        if (validuser && verifyToken._id) {
+            const newpassword = await bcrypt.hash(passwords, 12);
+
+            const setnewuserpass = await users.findByIdAndUpdate({ _id: id }, { password: newpassword });
+
+            setnewuserpass.save();
+            res.status(201).json({ status: 201, setnewuserpass })
+
+        } else {
+            res.status(401).json({ status: 401, message: "user not exist" })
+        }
+    } catch (error) {
+        res.status(401).json({ status: 401, error })
     }
-      const verifyToken = jwt.verify(token,keysecret);
-
-      if(validuser && verifyToken._id){
-          const newpassword = await bcrypt.hash(passwords,12);
-
-          const setnewuserpass = await users.findByIdAndUpdate({_id:id},{password:newpassword});
-
-          setnewuserpass.save();
-          res.status(201).json({status:201,setnewuserpass})
-
-      }else{
-          res.status(401).json({status:401,message:"user not exist"})
-      }
-  } catch (error) {
-      res.status(401).json({status:401,error})
-  }
 }
 
-module.exports = { registerUser, loginUser, validUser,googleLogin ,sendemaillink,verifyForgot,changePassword}
+module.exports = { registerUser, loginUser, validUser, googleLogin, sendemaillink, verifyForgot, changePassword }
