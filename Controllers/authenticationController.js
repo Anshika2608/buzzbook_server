@@ -133,7 +133,7 @@ const sendemaillink=async(req,res)=>{
       return res.status(401).json({ status: 401, message: "User not found" });
   }
     const token = jwt.sign({_id:userfind._id},keysecret,{
-      expiresIn:"1d"
+      expiresIn:"20m"
   });
   const setusertoken = await users.findByIdAndUpdate({_id:userfind._id},{verifytoken:token},{new:true});
   if(setusertoken){
@@ -141,7 +141,7 @@ const sendemaillink=async(req,res)=>{
         from:process.env.EMAIL,
         to:emailaddress,
         subject:"Sending Email For password Reset",
-        text:`This Link Valid For 2 MINUTES http://localhost:5173/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
+        text:`This Link Valid For 20 MINUTES http://localhost:5173/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
     }
 
     transporter.sendMail(mailOptions,(error,info)=>{
