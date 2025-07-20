@@ -27,7 +27,7 @@ router.get("/auth/google/callback",
             maxAge: 3600000
         });
 
-        res.redirect("http://localhost:3000/dashboard");
+        res.redirect("http://localhost:5173/dashboard");
     }
 );
 
