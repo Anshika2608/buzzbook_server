@@ -6,35 +6,43 @@ const authenticate = require("../Middleware/Authenticate")
 const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword } = require("../Controllers/authenticationController")
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.get("/validUser", authenticate, validUser);
-router.get("/auth/google", googleLogin);
+router.get("/validUser", authenticate, (req, res) => {
+  console.log("✅ /validUser hit by:", req.rootUser.email);
+  res.status(200).json({
+    name: req.rootUser.name,
+    email: req.rootUser.email,
+    picture: req.rootUser.image || null,
+  });
+});
+router.get("/auth/google", 
+  passport.authenticate("google", {
+    scope: ["profile", "email"]
+  })
+);
 
-
-router.get(
-  "/auth/google/callback",
+router.get("/auth/google/callback",
   passport.authenticate("google", {
     failureRedirect: "/login",
-    session: false, // ✅ no session, we're using JWT
+    session: false,
   }),
   (req, res) => {
-    const { user, token } = req.user;
+    console.log("✅ Google Callback Hit");
 
-    const isProd = process.env.NODE_ENV === "production";
+    const { user, token } = req.user;
 
     res.cookie("buzzbook_token", token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "None" : "Lax",
+      secure: false,
+      sameSite: "Lax",
       maxAge: 3600000,
     });
 
-    const redirectUrl = isProd
-      ? "https://your-frontend.vercel.app/dashboard"
-      : "http://localhost:5173/dashboard";
-
-    res.redirect(redirectUrl);
+    console.log("Cookie set successfully!");
+    res.redirect("http://localhost:3000/dashboard");
   }
 );
+
+
 
 
 

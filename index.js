@@ -5,7 +5,10 @@ const cookieParser = require("cookie-parser");
 const passport = require("./Middleware/PassPort");
 const cors = require("cors");
 app.use(express.json());
+
+
 app.use(cookieParser());
+
 const session = require('express-session');
 const port = process.env.PORT || 3000;
 const allowedOrigins = [
@@ -16,7 +19,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
+      
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -24,23 +27,13 @@ app.use(
         return callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // 🔥 Required for cookies
+    credentials: true, 
   })
 );
 
 
-
-//iss session ki help se user ko validate krenge session ki id se user ki details mil jayengi isliye hum session bna rhe h
-
-
-// app.use(session({
-//     secret: "9527351144674ansh@11234",
-//     resave: false,
-//     saveUninitialized: true
-// }));
-
 app.use(passport.initialize());
-// app.use(passport.session());
+
 
 
 app.use("/", require("./Routes/AuthenticationRoute"));
