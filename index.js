@@ -33,14 +33,14 @@ app.use(
 //iss session ki help se user ko validate krenge session ki id se user ki details mil jayengi isliye hum session bna rhe h
 
 
-app.use(session({
-    secret: "9527351144674ansh@11234",
-    resave: false,
-    saveUninitialized: true
-}));
+// app.use(session({
+//     secret: "9527351144674ansh@11234",
+//     resave: false,
+//     saveUninitialized: true
+// }));
 
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 
 app.use("/", require("./Routes/AuthenticationRoute"));
