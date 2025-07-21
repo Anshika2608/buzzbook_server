@@ -155,7 +155,7 @@ const sendemaillink = async (req, res) => {
                 from: process.env.EMAIL,
                 to: emailaddress,
                 subject: "Sending Email For password Reset",
-                text: `This Link Valid For 20 MINUTES http://localhost:5173/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
+                text: `This Link Valid For 20 MINUTES http://localhost:3000/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
             }
 
             transporter.sendMail(mailOptions, (error, info) => {
