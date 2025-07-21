@@ -36,7 +36,7 @@ app.use(passport.initialize());
 
 
 
-app.use("/", require("./Routes/AuthenticationRoute"));
+app.use("/auth", require("./Routes/AuthenticationRoute"));
 app.use("/movie",require("./Routes/MovieRoutes"));
 app.use("/theater",require("./Routes/TheaterRoutes"));
 app.use("/showtime",require("./Routes/ShowtimeRoutes"))

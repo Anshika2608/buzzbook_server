@@ -14,21 +14,21 @@ router.get("/validUser", authenticate, (req, res) => {
     picture: req.rootUser.image || null,
   });
 });
-router.get("/auth/google", 
+router.get("/google", 
   passport.authenticate("google", {
     scope: ["profile", "email"]
   })
 );
 
-router.get("/auth/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "/login",
-    session: false,
-  }),
-  (req, res) => {
-    console.log("✅ Google Callback Hit");
+router.get("/google/callback", (req, res, next) => {
+  passport.authenticate("google", { session: false }, (err, userWithToken, info) => {
+    if (err) return res.status(500).json({ message: "Error with Google login", error: err });
 
-    const { user, token } = req.user;
+    if (!userWithToken || !userWithToken.token) {
+      return res.status(401).json({ message: "Google login failed or token missing" });
+    }
+
+    const { user, token } = userWithToken;
 
     res.cookie("buzzbook_token", token, {
       httpOnly: true,
@@ -37,10 +37,10 @@ router.get("/auth/google/callback",
       maxAge: 3600000,
     });
 
-    console.log("Cookie set successfully!");
-    res.redirect("http://localhost:3000/dashboard");
-  }
-);
+    console.log("✅ Google Callback Hit — Cookie set");
+    res.redirect("http://localhost:5173/dashboard");
+  })(req, res, next);
+});
 
 
 
