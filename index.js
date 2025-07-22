@@ -10,6 +10,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 const session = require('express-session');
+const path = require("path");
+app.use(express.static(path.join(__dirname, "public")));
+
 const port = process.env.PORT || 3000;
 const allowedOrigins = [
   "http://localhost:5173",

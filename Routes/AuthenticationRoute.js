@@ -14,33 +14,33 @@ router.get("/validUser", authenticate, (req, res) => {
     picture: req.rootUser.image || null,
   });
 });
-router.get("/google", 
+router.get("/google",
   passport.authenticate("google", {
     scope: ["profile", "email"]
   })
 );
 
 router.get("/google/callback", (req, res, next) => {
-  passport.authenticate("google", { session: false }, (err, userWithToken, info) => {
-    if (err) return res.status(500).json({ message: "Error with Google login", error: err });
+  passport.authenticate("google", { session: false }, (err, userWithToken) => {
+    console.log("🔥 Callback route hit");
 
-    if (!userWithToken || !userWithToken.token) {
-      return res.status(401).json({ message: "Google login failed or token missing" });
+    if (err || !userWithToken || !userWithToken.token) {
+      console.error("❌ Google login error or missing token:", err, userWithToken);
+      return res.redirect("http://localhost:5173/?error=google_login_failed");
     }
 
-    const { user, token } = userWithToken;
+    const { token } = userWithToken;
+    console.log("✅ Google login successful");
+    console.log("🔑 Generated Token:", token);
 
-    res.cookie("buzzbook_token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
-      maxAge: 3600000,
-    });
-
-    console.log("✅ Google Callback Hit — Cookie set");
-    res.redirect("http://localhost:5173/dashboard");
+    // ✅ Redirect to frontend with token in query param
+    res.redirect(`http://localhost:5173/google-redirect.html?token=${token}`);
   })(req, res, next);
 });
+
+
+
+
 
 
 
