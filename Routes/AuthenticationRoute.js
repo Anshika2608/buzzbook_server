@@ -22,20 +22,28 @@ router.get("/google",
 
 router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", { session: false }, (err, userWithToken) => {
-    console.log("🔥 Callback route hit");
-
     if (err || !userWithToken || !userWithToken.token) {
-      console.error("❌ Google login error or missing token:", err, userWithToken);
-      return res.redirect("http://localhost:5173/?error=google_login_failed");
+      return res.redirect("http://localhost:3000/login?error=google_login_failed");
     }
 
     const { token } = userWithToken;
-    console.log("✅ Google login successful");
-    console.log("🔑 Generated Token:", token);
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+      expires: new Date(Date.now() + 6 * 60 * 60 * 1000),
+    });
 
-    // ✅ Redirect to frontend with token in query param
-    res.redirect(`http://localhost:5173/google-redirect.html?token=${token}`);
+    return res.redirect("http://localhost:3000/dashboard");
   })(req, res, next);
+});
+router.get("/logout", (req, res) => {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    sameSite: "Strict",
+    secure: false, // true in production with HTTPS
+  });
+  res.status(200).json({ message: "Logged out" });
 });
 
 

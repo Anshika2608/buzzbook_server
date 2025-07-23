@@ -5,7 +5,6 @@ const axios = require("axios");
 const passport = require("passport");
 const nodemailer = require("nodemailer");
 const keysecret = process.env.SECRET_KEY
-//emailconfig
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -19,8 +18,6 @@ const registerUser = async (req, res) => {
     if (!name || !email || !password || !cpassword || !recaptchaToken) {
         return res.status(400).json({ message: "Fill all the fields!" });
     }
-
-    // ✅ Allow test bypass
     if (recaptchaToken !== "test-token") {
         try {
             const response = await axios.post(
@@ -44,8 +41,6 @@ const registerUser = async (req, res) => {
             return res.status(500).json({ message: "reCAPTCHA error", error: error.message });
         }
     }
-
-    // ✅ Continue with your existing validations and save
     try {
         const nameRegex = /^[a-zA-Z ]{2,40}$/;
         const preuser = await users.findOne({ email: email });
@@ -107,16 +102,23 @@ const loginUser = async (req, res) => {
                 return res.status(400).json({ message: "Invalid details!" });
             } else {
                 const token = await preUser.generateAuthToken();
-                res.cookie("usercookie", token, {
-                    expires: new Date(Date.now() + 9000000),
-                    httpOnly: true
+                res.cookie("authToken", token, {
+                    httpOnly: true,
+                    secure: false, // true if using HTTPS
+                    sameSite: "Lax", // or "None" + Secure in production
+                    path: "/",       // ensure it’s not limited
+                    expires: new Date(Date.now() + 6 * 60 * 60 * 1000),
                 });
 
-                const result = {
-                    preUser,
-                    token
-                };
-                return res.status(201).json({ message: "User logged in successfully", result });
+
+                return res.status(201).json({
+                    message: "User logged in successfully",
+                    user: {
+                        name: preUser.name,
+                        email: preUser.email,
+                        image: preUser.image || null,
+                    },
+                });
             }
         }
     } catch (error) {
