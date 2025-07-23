@@ -29,8 +29,8 @@ router.get("/google/callback", (req, res, next) => {
     const { token } = userWithToken;
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "Lax",
+      secure: true,
+      sameSite: "None",
       expires: new Date(Date.now() + 6 * 60 * 60 * 1000),
     });
 

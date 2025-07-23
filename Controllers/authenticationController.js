@@ -104,8 +104,8 @@ const loginUser = async (req, res) => {
                 const token = await preUser.generateAuthToken();
                 res.cookie("authToken", token, {
                     httpOnly: true,
-                    secure: false, // true if using HTTPS
-                    sameSite: "Lax", // or "None" + Secure in production
+                    secure: true, // true if using HTTPS
+                    sameSite: "None", // or "None" + Secure in production
                     path: "/",       // ensure it’s not limited
                     expires: new Date(Date.now() + 6 * 60 * 60 * 1000),
                 });
