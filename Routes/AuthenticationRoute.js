@@ -40,7 +40,7 @@ router.get("/google/callback", (req, res, next) => {
 router.get("/logout", (req, res) => {
   res.clearCookie("authToken", {
     httpOnly: true,
-    sameSite: "Strict",
+    sameSite: "None",
     secure: true,
   });
   res.status(200).json({ message: "Logged out" });
