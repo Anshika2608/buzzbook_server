@@ -164,40 +164,58 @@ const getShowtime = async (req, res) => {
   }
 };
 
-const deleteShowtime=async(req,res)=>{
-const {theater_id,movie_title,showtime}=req.body;
-if(!theater_id || !movie_title || !showtime ){
-    return res.status(400).json({message:"fill all the required fields"})
-}
-try{
-  const theaterData=await Theater.findOne({theater_id})
-  if(!theaterData){
-    return res.status(404).json({message:"Theater not found!"})
+const deleteShowtime = async (req, res) => {
+  const { theater_id, audi_number, movie_title, showtime } = req.body;
+
+  if (!theater_id || !audi_number || !movie_title || !showtime) {
+    return res.status(400).json({
+      message: "Fields required: theater_id, audi_number, movie_title, showtime"
+    });
   }
-  const movie = theaterData.films_showing.find(
-    film => film.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
-);
 
-if (!movie) {
-    return res.status(404).json({ message: "Movie not found in this theater!" });
-}
+  try {
+    const theater = await Theater.findOne({ theater_id });
 
-const showtimeIndex = movie.showtimes.findIndex(
-    show => show.time.toLowerCase().trim() === showtime.toLowerCase().trim()
-);
+    if (!theater) {
+      return res.status(404).json({ message: "Theater not found!" });
+    }
 
-if (showtimeIndex === -1) {
-    return res.status(404).json({ message: "Showtime not found!" });
-}
+    const audi = theater.audis.find(a => a.audi_number === audi_number);
+    if (!audi) {
+      return res.status(404).json({ message: "Audi not found in this theater!" });
+    }
 
-movie.showtimes.splice(showtimeIndex, 1);
-await theaterData.save();
+    const film = audi.films_showing.find(
+      f => f.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
+    );
 
-return res.status(200).json({ message: "Showtime deleted successfully!" });
+    if (!film) {
+      return res.status(404).json({ message: "Movie not found in this audi!" });
+    }
 
-}catch(error){
-    return res.status(500).json({message:"Error deleting the showtime!"})
-}
+    const showIndex = film.showtimes.findIndex(
+      s => s.time.toLowerCase().trim() === showtime.toLowerCase().trim()
+    );
 
-}
+    if (showIndex === -1) {
+      return res.status(404).json({ message: "Showtime not found for this movie!" });
+    }
+
+    // Remove the showtime
+    film.showtimes.splice(showIndex, 1);
+
+    // If no showtimes left, remove the film entry too
+    if (film.showtimes.length === 0) {
+      audi.films_showing = audi.films_showing.filter(f => f.title !== film.title);
+    }
+
+    await theater.save();
+    return res.status(200).json({ message: "Showtime deleted successfully!" });
+
+  } catch (error) {
+    console.error("Error deleting showtime:", error);
+    return res.status(500).json({ message: "Error deleting the showtime", error: error.message });
+  }
+};
+
 module.exports = { updateShowtime ,addShowtime,getShowtime,deleteShowtime};

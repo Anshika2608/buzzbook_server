@@ -256,7 +256,78 @@ const addAudi = async (req, res) => {
     return res.status(500).json({ message: "Failed to add audi(s)", error: error.message });
   }
 };
+const addFilmToAudi = async (req, res) => {
+  const { theater_id, audi_number, title, language, showtimes } = req.body;
+
+  if (!theater_id || !audi_number || !title || !language || !Array.isArray(showtimes) || showtimes.length === 0) {
+    return res.status(400).json({ message: "All fields including an array of showtimes are required." });
+  }
+
+  try {
+    const theaterData = await theater.findOne({ theater_id });
+    if (!theaterData) {
+      return res.status(404).json({ message: "Theater not found." });
+    }
+
+    const audi = theaterData.audis.find(a => a.audi_number === audi_number);
+    if (!audi) {
+      return res.status(404).json({ message: "Audi not found in the theater." });
+    }
+
+    // Check layout type and required seat types
+    const layoutType = audi.layout_type.toLowerCase();
+    const layoutSeatMap = {
+      standard: ["VIP", "Premium", "Regular"],
+      luxury: ["Sofa", "Regular"],
+      studio: ["Regular"],
+      recliner: ["Recliner", "Regular"],
+      balcony: ["Premium", "Regular"]
+    };
+
+    const requiredSeatTypes = layoutSeatMap[layoutType];
+    if (!requiredSeatTypes) {
+      return res.status(400).json({ message: `Invalid layout type: ${layoutType}` });
+    }
+
+    // Validate each showtime object
+    for (const show of showtimes) {
+      if (!show.time || !show.prices || typeof show.prices !== "object") {
+        return res.status(400).json({ message: "Each showtime must include time and prices." });
+      }
+
+      for (const seatType of requiredSeatTypes) {
+        if (!(seatType in show.prices)) {
+          return res.status(400).json({ message: `Price for '${seatType}' is missing in showtime: ${show.time}` });
+        }
+      }
+    }
+
+    // Check if film already exists
+    const filmExists = audi.films_showing.some(f => f.title.toLowerCase().trim() === title.toLowerCase().trim());
+    if (filmExists) {
+      return res.status(400).json({ message: "This film already exists in the audi." });
+    }
+
+    // Add new film with showtimes
+    audi.films_showing.push({
+      title,
+      language,
+      showtimes: showtimes.map(show => ({
+        time: show.time,
+        audi_number,
+        prices: show.prices
+      }))
+    });
+
+    await theaterData.save();
+    res.status(201).json({ message: "Film with showtimes added successfully." });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to add film", error: error.message });
+  }
+};
 
 
 
-module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat,addAudi }
+module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat,addAudi,addFilmToAudi }
