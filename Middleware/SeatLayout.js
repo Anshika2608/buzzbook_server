@@ -1,121 +1,115 @@
 const generateSeatsMiddleware = (req, res, next) => {
-    const { audis } = req.body;
+  const { audis } = req.body;
 
-    if (!Array.isArray(audis) || audis.length === 0) {
-        return res.status(400).json({ message: "Audis must be a non-empty array." });
-    }
+  if (!Array.isArray(audis) || audis.length === 0) {
+    return res.status(400).json({ message: "Audis must be a non-empty array." });
+  }
 
-    try {
-        req.body.audis = audis.map((audi, index) => {
-            const {
-                rows,
-                seatsPerRow,
-                layout_type,
-                vipRows,
-                premiumRows,
-                sofaRows,
-                regularRows,
-                reclinerRows,
-                emptySpaces
-            } = audi;
+  try {
+    req.body.audis = audis.map((audi, index) => {
+      const {
+        rows,
+        seatsPerRow,
+        layout_type,
+        vipRows = 0,
+        premiumRows = 0,
+        sofaRows = 0,
+        regularRows = 0,
+        reclinerRows = 0,
+        emptySpaces = []
+      } = audi;
 
-            if (!rows || !seatsPerRow || !layout_type) {
-                throw new Error(`Missing basic layout data in audi ${index + 1}`);
-            }
+      if (!rows || !seatsPerRow || !layout_type) {
+        throw new Error(`Missing basic layout data in audi ${index + 1}`);
+      }
 
-            let layout = [];
-            let seat_types = [];
+      let seat_types = [];
+      let requiredTypes = [];
 
-            switch (layout_type.toLowerCase()) {
-                case "standard":
-                    if (!vipRows || !premiumRows || !regularRows) {
-                        throw new Error(`'standard' layout requires vipRows, premiumRows, and regularRows`);
-                    }
-                    if (vipRows + premiumRows + regularRows !== rows) {
-                        throw new Error(`Sum of vip, premium, and regular rows must match total rows`);
-                    }
-                    seat_types.push(...Array(vipRows).fill("VIP"));
-                    seat_types.push(...Array(premiumRows).fill("Premium"));
-                    seat_types.push(...Array(regularRows).fill("Regular"));
-                    break;
+      // Map of layout_type => expected seat types
+      const layoutConfig = {
+        standard: ["vipRows", "premiumRows", "regularRows"],
+        luxury: ["sofaRows", "regularRows"],
+        studio: ["regularRows"],
+        recliner: ["reclinerRows", "regularRows"],
+        balcony: ["premiumRows", "regularRows"]
+      };
 
-                case "luxury":
-                    if (!sofaRows || !regularRows) {
-                        throw new Error(`'luxury' layout requires sofaRows and regularRows`);
-                    }
-                    if (sofaRows + regularRows !== rows) {
-                        throw new Error(`Sum of sofa and regular rows must match total rows`);
-                    }
-                    seat_types.push(...Array(sofaRows).fill("Sofa"));
-                    seat_types.push(...Array(regularRows).fill("Regular"));
-                    break;
+      const layoutKey = layout_type.toLowerCase();
+      const expectedRowKeys = layoutConfig[layoutKey];
 
-                case "studio":
-                    if (!regularRows || regularRows !== rows) {
-                        throw new Error(`'studio' layout requires regularRows equal to total rows`);
-                    }
-                    seat_types = Array(rows).fill("Regular");
-                    break;
+      if (!expectedRowKeys) {
+        throw new Error(`Invalid layout type '${layout_type}' in audi ${index + 1}`);
+      }
 
-                case "recliner":
-                    if (!reclinerRows || !regularRows) {
-                        throw new Error(`'recliner' layout requires reclinerRows and regularRows`);
-                    }
-                    if (reclinerRows + regularRows !== rows) {
-                        throw new Error(`Sum of recliner and regular rows must match total rows`);
-                    }
-                    seat_types.push(...Array(reclinerRows).fill("Recliner"));
-                    seat_types.push(...Array(regularRows).fill("Regular"));
-                    break;
+      // Validate presence and sum of expected row keys
+      let totalRowSum = 0;
+      for (const rowKey of expectedRowKeys) {
+        const value = eval(rowKey); // e.g., vipRows
+        if (!value || typeof value !== "number" || value < 0) {
+          throw new Error(`Missing or invalid '${rowKey}' for layout '${layout_type}' in audi ${index + 1}`);
+        }
+        totalRowSum += value;
 
-                case "balcony":
-                    if (!premiumRows || !regularRows) {
-                        throw new Error(`'balcony' layout requires premiumRows and regularRows`);
-                    }
-                    if (premiumRows + regularRows !== rows) {
-                        throw new Error(`Sum of premium and regular rows must match total rows`);
-                    }
-                    seat_types.push(...Array(regularRows).fill("Regular"));
-                    seat_types.push(...Array(premiumRows).fill("Premium"));
-                    break;
+        // Collect seat type name from key (e.g., "vipRows" => "VIP")
+        requiredTypes.push(rowKey.replace("Rows", ""));
+        seat_types.push(...Array(value).fill(rowKey.replace("Rows", "").toUpperCase()));
+      }
 
-                default:
-                    throw new Error(`Invalid layout type '${layout_type}' in audi ${index + 1}`);
-            }
+      if (totalRowSum !== rows) {
+        throw new Error(`Sum of seat type rows (${totalRowSum}) must match total rows (${rows}) in audi ${index + 1}`);
+      }
 
-            // Generate layout and assign to the audi object
-            generateLayout(rows, seatsPerRow, seat_types, emptySpaces || [], layout);
-            return {
-                ...audi,
-                seating_layout: layout,
-                seating_capacity: rows * seatsPerRow
-            };
-        });
+      // Generate seat layout grid
+      let layout = [];
+      generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout);
 
-        next();
-    } catch (error) {
-        res.status(400).json({ message: "Error generating audi layouts", error: error.message });
-    }
+      return {
+        ...audi,
+        seating_layout: layout,
+        seating_capacity: rows * seatsPerRow
+      };
+    });
+
+    next();
+  } catch (error) {
+    return res.status(400).json({ message: "Error generating audi layouts", error: error.message });
+  }
 };
 
+
+
 function generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout) {
-    for (let row = 0; row < rows; row++) {
-        let rowLayout = [];
-        let rowLetter = String.fromCharCode(65 + row);
+  for (let row = 0; row < rows; row++) {
+    let rowLayout = [];
+    let rowLetter = String.fromCharCode(65 + row);
 
-        for (let seat = 1; seat <= seatsPerRow; seat++) {
-            let seatNumber = `${rowLetter}${seat}`;
-            let seatType = seat_types[row];
+    for (let seat = 1; seat <= seatsPerRow; seat++) {
+      const seatNumber = `${rowLetter}${seat}`;
+      const seatType = seat_types[row];
 
-            if (emptySpaces.includes(`${row + 1}-${seat}`)) {
-                rowLayout.push({ seat_number: seatNumber, type: "Empty", is_booked: false });
-            } else {
-                rowLayout.push({ seat_number: seatNumber, type: seatType, is_booked: false });
-            }
-        }
-
-        layout.push(rowLayout);
+      if (emptySpaces.includes(`${row + 1}-${seat}`)) {
+        rowLayout.push({
+          seat_number: seatNumber,
+          type: "Empty",
+          is_booked: false,
+          is_held: false,
+          hold_expires_at: null
+        });
+      } else {
+        rowLayout.push({
+          seat_number: seatNumber,
+          type: seatType,
+          is_booked: false,
+          is_held: false,
+          hold_expires_at: null
+        });
+      }
     }
+
+    layout.push(rowLayout);
+  }
 }
+
 
 module.exports = generateSeatsMiddleware;

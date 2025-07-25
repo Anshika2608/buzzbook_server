@@ -40,7 +40,8 @@ const addTheater = async (req, res) => {
                 language: film.language,
                 showtimes: film.showtimes.map(show => ({
                     time: show.time,
-                    audi_number: show.audi_number
+                    audi_number: show.audi_number,
+                    prices: show.prices 
                 }))
             }));
 

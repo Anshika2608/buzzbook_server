@@ -38,10 +38,10 @@ const updateShowtime = async (req, res) => {
  
 
 const addShowtime = async (req, res) => {
-  const { theater_id, audi_number, movie_title, language, new_showtime } = req.body;
+  const { theater_id, audi_number, movie_title, language, new_showtime, prices } = req.body;
 
-  if (!theater_id || !audi_number || !movie_title || !language || !new_showtime) {
-    return res.status(400).json({ message: "All fields are required." });
+  if (!theater_id || !audi_number || !movie_title || !language || !new_showtime || !prices) {
+    return res.status(400).json({ message: "All fields including prices are required." });
   }
 
   try {
@@ -50,23 +50,46 @@ const addShowtime = async (req, res) => {
     if (!theater) {
       return res.status(404).json({ message: "Theater not found." });
     }
-console.log("Fetched Theater:", theater);
-    if (!Array.isArray(theater.audis) || theater.audis.length === 0) {
-      return res.status(400).json({ message: "Audis must be a non-empty array." });
-    }
 
     const audi = theater.audis.find(a => a.audi_number === audi_number);
     if (!audi) {
       return res.status(404).json({ message: "Audi not found in the theater." });
     }
 
+    // Determine required seat types based on layout_type
+    const layoutType = audi.layout_type.toLowerCase();
+    const seatTypeMap = {
+      standard: ["VIP", "Premium", "Regular"],
+      luxury: ["Sofa", "Regular"],
+      studio: ["Regular"],
+      recliner: ["Recliner", "Regular"],
+      balcony: ["Premium", "Regular"]
+    };
+
+    const requiredSeatTypes = seatTypeMap[layoutType];
+    if (!requiredSeatTypes) {
+      return res.status(400).json({ message: `Invalid layout type: ${layoutType}` });
+    }
+
+    // Validate that prices for all required seat types are provided
+    for (const seatType of requiredSeatTypes) {
+      if (!(seatType in prices)) {
+        return res.status(400).json({ message: `Price for '${seatType}' is required.` });
+      }
+    }
+
+    // Find the film or create a new one
     let film = audi.films_showing.find(f => f.title.toLowerCase().trim() === movie_title.toLowerCase().trim());
 
     if (!film) {
       audi.films_showing.push({
         title: movie_title,
         language: language,
-        showtimes: [{ time: new_showtime, audi_number }]
+        showtimes: [{
+          time: new_showtime,
+          audi_number,
+          prices
+        }]
       });
     } else {
       const alreadyExists = film.showtimes.some(st => st.time === new_showtime);
@@ -74,7 +97,11 @@ console.log("Fetched Theater:", theater);
         return res.status(400).json({ message: "Showtime already exists for this movie." });
       }
 
-      film.showtimes.push({ time: new_showtime, audi_number });
+      film.showtimes.push({
+        time: new_showtime,
+        audi_number,
+        prices
+      });
     }
 
     await theater.save();
@@ -85,6 +112,7 @@ console.log("Fetched Theater:", theater);
     res.status(500).json({ message: "Failed to add showtime", error: error.message });
   }
 };
+
 
 
 

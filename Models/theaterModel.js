@@ -1,21 +1,33 @@
 const mongoose = require("mongoose");
 
 const seatSchema = new mongoose.Schema({
-    seat_number: { type: String },
-    type: { type: String, required: true },
-    is_booked: { type: Boolean, default: false }
+  seat_number: { type: String },
+  type: { type: String, required: true },
+  is_booked: { type: Boolean, default: false },
+  is_held: { type: Boolean, default: false }, 
+  hold_expires_at: { type: Date },                
 });
 
 const showtimeSchema = new mongoose.Schema({
-    time: { type: String, required: true },
-    audi_number: { type: String, required: true } 
+  time: { type: String, required: true },
+  audi_number: { type: String, required: true },
+  prices: {
+    VIP: { type: Number },
+    Premium: { type: Number },
+    Regular: { type: Number },
+    Sofa: { type: Number },
+    Recliner: { type: Number }
+  }
 });
 
+
 const filmSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    language: { type: String, required: true },
-    showtimes: [showtimeSchema]
+  title: { type: String, required: true },
+  language: { type: String, required: true },
+  showtimes: [showtimeSchema],
+
 });
+
 
 const audiSchema = new mongoose.Schema({
     audi_number: { type: String, required: true },
