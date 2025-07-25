@@ -1,10 +1,10 @@
 const theater = require("../Models/theaterModel");
 const getTheater = async (req, res) => {
     try {
-        const { location } = req.query;
-        const theaters = await theater.find({ location: { $regex: new RegExp("^" + location, "i") } })
+        
+        const theaters = await theater.find({})
         if (!theaters.length) {
-            return res.status(400).json({ message: `No theater available in ${location}` })
+            return res.status(400).json({ message: "No theater available" })
         }
         else {
             return res.status(201).json({ message: "list of theaters recieved successfully", theaters })
@@ -15,71 +15,70 @@ const getTheater = async (req, res) => {
 }
 const addTheater = async (req, res) => {
     try {
-        let {
-            theater_id, name, location, address, popular, layout_type, films_showing, contact,
-            seating_layout, rows, seatsPerRow, premiumRows, vipRows, regularRows, reclinerRows, sofaRows, emptySpaces
-        } = req.body;
+        const { theater_id, name, location, address, popular, contact, audis } = req.body;
 
-        rows = rows ? Number(rows) : null;
-        seatsPerRow = seatsPerRow ? Number(seatsPerRow) : null;
-
-        if (!theater_id || !name || !location || !address || !layout_type || popular === undefined || !films_showing || !contact || !rows || !seatsPerRow) {
-            return res.status(400).json({ message: "Fill all the required fields!", received: { rows, seatsPerRow } });
+        if (!theater_id || !name || !location || !address || !popular === undefined || !contact || !Array.isArray(audis) || audis.length === 0) {
+            return res.status(400).json({ message: "Fill all the required fields including audis!" });
         }
 
-        if (!seating_layout || !Array.isArray(seating_layout) || seating_layout.length === 0) {
-            return res.status(400).json({ message: "Invalid seating layout. It must be a non-empty array." });
-        }
         const existingTheater = await theater.findOne({ theater_id });
-        const existingTheaterName = await theater.findOne({
-            name: { $regex: new RegExp(`^${name}$`, "i") },
-            address: { $regex: new RegExp(`^${address}$`, "i") }
-        });
         if (existingTheater) {
-            return res.status(400).json({ message: "Theater ID must be unique. A theater with this ID already exists." });
-        }
-        if (existingTheaterName) {
-            return res.status(400).json({ message: "Theater with this name already exists in this location!" });
+            return res.status(400).json({ message: "Theater with this ID already exists." });
         }
 
-        const seating_capacity = rows * seatsPerRow;
+        const formattedAudis = audis.map(audi => {
+            const { audi_number, layout_type, rows, seatsPerRow, seating_layout, vipRows, premiumRows, sofaRows, regularRows, reclinerRows, emptySpaces, films_showing } = audi;
 
-        const formattedFilms = films_showing.map(film => ({
-            title: film.title,
-            language: film.language,
-            showtimes: film.showtimes.map(time => ({
-                time,
-                seating_layout  
-            }))
-        }));
+            if (!audi_number || !layout_type || !rows || !seatsPerRow || !Array.isArray(seating_layout) || seating_layout.length === 0) {
+                throw new Error(`Invalid data for audi: ${audi_number}`);
+            }
+
+            const seating_capacity = rows * seatsPerRow;
+
+            const formattedFilms = films_showing.map(film => ({
+                title: film.title,
+                language: film.language,
+                showtimes: film.showtimes.map(time => ({
+                    time,
+                    seating_layout
+                }))
+            }));
+
+            return {
+                audi_number,
+                layout_type,
+                rows,
+                seatsPerRow,
+                seating_capacity,
+                seating_layout,
+                vipRows,
+                premiumRows,
+                sofaRows,
+                regularRows,
+                reclinerRows,
+                emptySpaces,
+                films_showing: formattedFilms
+            };
+        });
 
         const newTheater = new theater({
             theater_id,
             name,
             location,
             address,
-            layout_type,
             popular,
-            seating_capacity,
-            seating_layout,
-            films_showing: formattedFilms,
             contact,
-            rows,
-            seatsPerRow,
-            premiumRows,
-            vipRows,
-            regularRows,
-            reclinerRows,
-            sofaRows,
-            emptySpaces
+            audis: formattedAudis
         });
 
         await newTheater.save();
-        res.status(201).json({ success: true, message: "Theater created successfully", theater: newTheater });
+        res.status(201).json({ success: true, message: "Theater with audis created successfully", theater: newTheater });
     } catch (error) {
-        return res.status(500).json({ message: "Error in creating new theater", error: error.message });
+        console.error(error);
+        res.status(500).json({ message: "Error in creating theater", error: error.message });
     }
 };
+
 const getSeatLayout = async (req, res) => {
     const { name, movie_title, showtime } = req.params;
     try {
@@ -109,26 +108,36 @@ const getSeatLayout = async (req, res) => {
     }
 };
 const getTheaterForMovie = async (req, res) => {
-
     try {
-        const { location, title } = req.params;
-        if (!title) {
-            return res.status(400).json({ message: "provide film for which theater have to be shown" })
-        } else if (!location) {
-            return res.status(400).json({ message: "Select location first!" })
-        } else {
-            const theaters = await theater.find({ "films_showing.title": title, location: { $regex: location, $options: "i" } });
-            if (!theaters || theaters.length === 0) {
-                return res.status(404).json({ message: "this movie is not available at any theater in this location" })
-            } else {
-                return res.status(201).json({ message: "theaters shown successfully", theaters })
-            }
+       const { location, title } = req.query;
 
+        if (!title) {
+            return res.status(400).json({ message: "Provide film for which theater has to be shown" });
         }
+
+        if (!location) {
+            return res.status(400).json({ message: "Select location first!" });
+        }
+
+        const theaters = await theater.find({
+            location: { $regex: location, $options: "i" },
+            audis: {
+                $elemMatch: {
+                    "films_showing.title": title
+                }
+            }
+        });
+
+        if (!theaters || theaters.length === 0) {
+            return res.status(404).json({ message: "This movie is not available at any theater in this location" });
+        }
+
+        return res.status(200).json({ message: "Theaters shown successfully", theaters });
     } catch (error) {
         return res.status(500).json({ message: "Error while getting theaters for particular film", error: error.message });
     }
-}
+};
+
 const bookSeat = async (req, res) => {
     try {
         const { theater_id, movie_title, showtime, seat_number } = req.body;

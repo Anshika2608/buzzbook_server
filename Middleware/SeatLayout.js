@@ -1,105 +1,119 @@
 const generateSeatsMiddleware = (req, res, next) => {
-    const { rows, seatsPerRow, layout_type, vipRows, premiumRows, sofaRows, regularRows, reclinerRows, emptySpaces } = req.body;
-    let layout = [];
+    const { audis } = req.body;
+
+    if (!Array.isArray(audis) || audis.length === 0) {
+        return res.status(400).json({ message: "Audis must be a non-empty array." });
+    }
 
     try {
-        if (layout_type === "standard") {
-            if (!vipRows || !premiumRows || !regularRows) {
-                return res.status(400).json({ message: "For 'standard' layout, 'vipRows', 'premiumRows', and 'regularRows' must be provided." });
-            }
-            if(vipRows+premiumRows+regularRows!== rows){
-                return res.status(400).json({message:"Sum of vip,premium and regular rows does not matches total rows!"})
+        req.body.audis = audis.map((audi, index) => {
+            const {
+                rows,
+                seatsPerRow,
+                layout_type,
+                vipRows,
+                premiumRows,
+                sofaRows,
+                regularRows,
+                reclinerRows,
+                emptySpaces
+            } = audi;
+
+            if (!rows || !seatsPerRow || !layout_type) {
+                throw new Error(`Missing basic layout data in audi ${index + 1}`);
             }
 
+            let layout = [];
             let seat_types = [];
-            seat_types.push(...Array(vipRows).fill("VIP"));
-            seat_types.push(...Array(premiumRows).fill("Premium"));
-            seat_types.push(...Array(regularRows).fill("Regular"));
-            generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout);
 
-        } else if (layout_type === "luxury") {
+            switch (layout_type.toLowerCase()) {
+                case "standard":
+                    if (!vipRows || !premiumRows || !regularRows) {
+                        throw new Error(`'standard' layout requires vipRows, premiumRows, and regularRows`);
+                    }
+                    if (vipRows + premiumRows + regularRows !== rows) {
+                        throw new Error(`Sum of vip, premium, and regular rows must match total rows`);
+                    }
+                    seat_types.push(...Array(vipRows).fill("VIP"));
+                    seat_types.push(...Array(premiumRows).fill("Premium"));
+                    seat_types.push(...Array(regularRows).fill("Regular"));
+                    break;
 
-            if (!sofaRows || !regularRows) {
-                return res.status(400).json({ message: "For 'luxury' layout, 'sofaRows' and 'regularRows' must be provided." });
+                case "luxury":
+                    if (!sofaRows || !regularRows) {
+                        throw new Error(`'luxury' layout requires sofaRows and regularRows`);
+                    }
+                    if (sofaRows + regularRows !== rows) {
+                        throw new Error(`Sum of sofa and regular rows must match total rows`);
+                    }
+                    seat_types.push(...Array(sofaRows).fill("Sofa"));
+                    seat_types.push(...Array(regularRows).fill("Regular"));
+                    break;
+
+                case "studio":
+                    if (!regularRows || regularRows !== rows) {
+                        throw new Error(`'studio' layout requires regularRows equal to total rows`);
+                    }
+                    seat_types = Array(rows).fill("Regular");
+                    break;
+
+                case "recliner":
+                    if (!reclinerRows || !regularRows) {
+                        throw new Error(`'recliner' layout requires reclinerRows and regularRows`);
+                    }
+                    if (reclinerRows + regularRows !== rows) {
+                        throw new Error(`Sum of recliner and regular rows must match total rows`);
+                    }
+                    seat_types.push(...Array(reclinerRows).fill("Recliner"));
+                    seat_types.push(...Array(regularRows).fill("Regular"));
+                    break;
+
+                case "balcony":
+                    if (!premiumRows || !regularRows) {
+                        throw new Error(`'balcony' layout requires premiumRows and regularRows`);
+                    }
+                    if (premiumRows + regularRows !== rows) {
+                        throw new Error(`Sum of premium and regular rows must match total rows`);
+                    }
+                    seat_types.push(...Array(regularRows).fill("Regular"));
+                    seat_types.push(...Array(premiumRows).fill("Premium"));
+                    break;
+
+                default:
+                    throw new Error(`Invalid layout type '${layout_type}' in audi ${index + 1}`);
             }
-            if(sofaRows+regularRows!== rows){
-                return res.status(400).json({message:"Sum of sofaRows and regularRows does not matches total rows!"})
-            }
 
-            let seat_types = [];
-            seat_types.push(...Array(sofaRows).fill("Sofa"));
-            seat_types.push(...Array(regularRows).fill("Regular"));
-            generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout);
+            // Generate layout and assign to the audi object
+            generateLayout(rows, seatsPerRow, seat_types, emptySpaces || [], layout);
+            return {
+                ...audi,
+                seating_layout: layout,
+                seating_capacity: rows * seatsPerRow
+            };
+        });
 
-        } else if (layout_type === "studio") {
-            
-            if (!regularRows) {
-                return res.status(400).json({ message: "For 'studio' layout, 'regularRows' must be provided." });
-            }
-            if(regularRows!== rows){
-                return res.status(400).json({message:"number of  regularRows does not matches total rows!"})
-            }
-
-            let seat_types = Array(rows * seatsPerRow).fill("Regular");
-            generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout);
-
-        } else if (layout_type === "recliner") {
-            
-            if (!reclinerRows || !regularRows) {
-                return res.status(400).json({ message: "For 'recliner' layout, 'reclinerRows' and 'regularRows' must be provided." });
-            }
-            if(reclinerRows+regularRows!== rows){
-                return res.status(400).json({message:"Sum of reclinerRows and regularRows does not matches total rows!"})
-            }
-
-            let seat_types = [];
-            seat_types.push(...Array(reclinerRows).fill("Recliner"));
-            seat_types.push(...Array(regularRows).fill("Regular"));
-            generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout);
-
-        } else if (layout_type === "balcony") {
-            
-            if (!regularRows || !premiumRows) {
-                return res.status(400).json({ message: "For 'balcony' layout, 'regularRows' and 'premiumRows' must be provided." });
-            }
-            if(premiumRows+regularRows!== rows){
-                return res.status(400).json({message:"Sum of premiumRows and regularRows does not matches total rows!"})
-            }
-
-            let seat_types = [];
-            seat_types.push(...Array(regularRows).fill("Regular"));
-            seat_types.push(...Array(premiumRows).fill("Premium"));
-            generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout);
-
-        } else {
-            return res.status(400).json({ message: "Invalid layout type" });
-        }
-
-       
-        req.body.seating_layout = layout;
-        next(); 
-
+        next();
     } catch (error) {
-        res.status(500).json({ success: false, message: "Error generating seating layout", error: error.message });
+        res.status(400).json({ message: "Error generating audi layouts", error: error.message });
     }
 };
-
 
 function generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout) {
     for (let row = 0; row < rows; row++) {
         let rowLayout = [];
-        let rowLetter = String.fromCharCode(65 + row); 
+        let rowLetter = String.fromCharCode(65 + row);
 
         for (let seat = 1; seat <= seatsPerRow; seat++) {
             let seatNumber = `${rowLetter}${seat}`;
-            let seatType = seat_types[row]; 
+            let seatType = seat_types[row];
 
-            if (emptySpaces.includes(`${row + 1}-${seat}`)) { 
+            if (emptySpaces.includes(`${row + 1}-${seat}`)) {
                 rowLayout.push({ seat_number: seatNumber, type: "Empty", is_booked: false });
             } else {
                 rowLayout.push({ seat_number: seatNumber, type: seatType, is_booked: false });
             }
         }
+
         layout.push(rowLayout);
     }
 }
