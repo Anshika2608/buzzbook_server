@@ -1,6 +1,6 @@
 const movie = require("../Models/movieModel")
-const Theater=require("../Models/theaterModel")
-const cloudinary = require("../Middleware/Cloudinary"); 
+const Theater = require("../Models/theaterModel")
+const cloudinary = require("../Middleware/Cloudinary");
 const getMovie = async (req, res) => {
     try {
         const listOfMovies = await movie.find({});
@@ -59,7 +59,7 @@ const addMovie = async (req, res) => {
                 production_house,
                 director,
                 cast,
-                poster_img:posterImageUrls
+                poster_img: posterImageUrls
             })
             const newMovie = await Movie.save();
             return res.status(201).json({ message: "movie added successfully", movie: newMovie })
@@ -70,32 +70,33 @@ const addMovie = async (req, res) => {
 
 }
 const getMovieFromLocation = async (req, res) => {
-    const { location } = req.body;
+    const { location } = req.query;
 
     if (!location) {
         return res.status(400).json({ message: "Fill all the required fields" });
     }
 
     try {
+        console.log("Searching for location:", location);
+
         const theaters = await Theater.find({ location: { $regex: new RegExp("^" + location, "i") } });
+        console.log("Matched theaters:", theaters);
 
         if (theaters.length === 0) {
             return res.status(404).json({ message: "No theaters found in this location" });
         }
-
         const filmTitles = new Set();
         theaters.forEach(theater => {
-            theater.films_showing.forEach(film => {
-                filmTitles.add(film.title);
+            theater.audis.forEach(audi => {
+                audi.films_showing.forEach(film => {
+                    filmTitles.add(film.title);
+                });
             });
         });
-
         if (filmTitles.size === 0) {
             return res.status(404).json({ message: "No movies found in this location" });
         }
-
         const movies = await movie.find({ title: { $in: Array.from(filmTitles) } });
-
         return res.status(200).json({ movies });
 
     } catch (error) {
@@ -105,5 +106,24 @@ const getMovieFromLocation = async (req, res) => {
         });
     }
 };
+const getMovieDetails = async (req, res) => {
+    try {
+        const { title } = req.query;
+        if (!title) {
+            return res.status(400).json({ message: "Movie title is required" });
+        }
 
-module.exports = { getMovie, addMovie,getMovieFromLocation }
+        const movieData = await movie.findOne({
+            title: { $regex: new RegExp("^" + title + "$", "i") }
+        });
+
+        if (!movieData) {
+            return res.status(404).json({ message: "Movie not found" });
+        }
+
+        res.status(200).json({ success: true, movie:movieData });
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving movie details", error: error.message });
+    }
+};
+module.exports = { getMovie, addMovie, getMovieFromLocation, getMovieDetails }

@@ -1,7 +1,7 @@
 const theater = require("../Models/theaterModel");
 const getTheater = async (req, res) => {
     try {
-        
+
         const theaters = await theater.find({})
         if (!theaters.length) {
             return res.status(400).json({ message: "No theater available" })
@@ -38,11 +38,12 @@ const addTheater = async (req, res) => {
             const formattedFilms = films_showing.map(film => ({
                 title: film.title,
                 language: film.language,
-                showtimes: film.showtimes.map(time => ({
-                    time,
-                    seating_layout
+                showtimes: film.showtimes.map(show => ({
+                    time: show.time,
+                    audi_number: show.audi_number
                 }))
             }));
+
 
             return {
                 audi_number,
@@ -83,7 +84,7 @@ const getSeatLayout = async (req, res) => {
     const { name, movie_title, showtime } = req.params;
     try {
         const theaterData = await theater.findOne({
-            name: { $regex: new RegExp(`^${name}$`, "i") }, 
+            name: { $regex: new RegExp(`^${name}$`, "i") },
         });
         if (!theaterData) {
             return res.status(404).json({ message: "Theater not found." });
@@ -109,7 +110,7 @@ const getSeatLayout = async (req, res) => {
 };
 const getTheaterForMovie = async (req, res) => {
     try {
-       const { location, title } = req.query;
+        const { location, title } = req.query;
 
         if (!title) {
             return res.status(400).json({ message: "Provide film for which theater has to be shown" });
@@ -146,7 +147,7 @@ const bookSeat = async (req, res) => {
             return res.status(400).json({ message: "All fields are required: theater_id, movie_title, showtime, seat_number." });
         }
 
-        
+
         let theaters = await theater.findOne({ theater_id });
         if (!theaters) {
             return res.status(404).json({ message: "Theater not found." });
@@ -166,7 +167,7 @@ const bookSeat = async (req, res) => {
                     if (seat.is_booked) {
                         return res.status(400).json({ message: "Seat is already booked." });
                     }
-                    seat.is_booked = true;  
+                    seat.is_booked = true;
                     seatFound = true;
                 }
             });
@@ -198,4 +199,4 @@ const deleteTheater = async (req, res) => {
         return res.status(500).json({ message: "Error deleting theater", error: error.message });
     }
 };
-module.exports = {deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat }
+module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat }

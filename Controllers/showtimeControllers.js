@@ -93,26 +93,51 @@ const addShowtime = async (req, res) => {
 
 
 
-const getShowtime=async(req,res)=>{
-    const{theater_id,movie_title}=req.body;
-    if(!theater_id || !movie_title){
-        return res.status(400).json({message:"Fill all the required fields"})
+const getShowtime = async (req, res) => {
+  const { theater_id, movie_title } = req.query;
+
+  if (!theater_id || !movie_title) {
+    return res.status(400).json({ message: "Fill all the required fields" });
+  }
+
+  try {
+    const theaterData = await Theater.findOne({ theater_id });
+
+    if (!theaterData) {
+      return res.status(404).json({ message: "Theater not found!" });
     }
-    try{
-      const theaterData=await Theater.findOne({theater_id})
-      if(!theaterData){
-        return res.status(404).json({message:"theater not found!"})
+    let matchedShowtimes = [];
+    for (const audi of theaterData.audis) {
+      const matchedMovie = audi.films_showing.find(
+        film => film.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
+      );
+
+      if (matchedMovie) {
+        const showtimes = matchedMovie.showtimes.map(show => ({
+          time: show.time,
+          audi_number: audi.audi_number
+        }));
+        matchedShowtimes.push(...showtimes);
       }
-      const movie=theaterData.films_showing.find(film => film.title.toLowerCase().trim() === movie_title.toLowerCase().trim())
-      if(!movie){
-        return res.status(404).json({message:"movie not found"})
-      }
-      const showtimeTimes=movie.showtimes.map(show=>show.time)
-      return res.status(201).json({message:"showtimes recieved successfully",showtimes:showtimeTimes})
-    }catch(error){
-        return res.status(500).json({message:"Error while recieving the showtimes!",error:error.message})
     }
-}
+
+    if (matchedShowtimes.length === 0) {
+      return res.status(404).json({ message: "Movie not found in any audi of this theater" });
+    }
+
+    return res.status(200).json({
+      message: "Showtimes retrieved successfully",
+      showtimes: matchedShowtimes
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error while retrieving the showtimes!",
+      error: error.message
+    });
+  }
+};
+
 const deleteShowtime=async(req,res)=>{
 const {theater_id,movie_title,showtime}=req.body;
 if(!theater_id || !movie_title || !showtime ){
