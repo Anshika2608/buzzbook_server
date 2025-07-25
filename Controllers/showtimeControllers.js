@@ -2,39 +2,113 @@ const mongoose = require("mongoose");
 const Theater = require("../Models/theaterModel");
 
 const updateShowtime = async (req, res) => {
-  const { theater_id, movie_title, showtime_id, new_time } = req.body;
-  if (!theater_id || !movie_title || !showtime_id || !new_time) {
-    return res.status(400).json({ message: "Fill all the required fields!" });
+  const {
+    theater_id,
+    audi_number,
+    movie_title,
+    showtime_id,
+    new_time,
+    new_prices,
+    new_audi_number,
+    new_movie_title
+  } = req.body;
+
+  if (!theater_id || !audi_number || !movie_title || !showtime_id) {
+    return res.status(400).json({ message: "Required fields: theater_id, audi_number, movie_title, showtime_id" });
   }
+
   try {
-    const theaterData = await Theater.findOne({ theater_id });
-    if (!theaterData) {
+    const theater = await Theater.findOne({ theater_id });
+
+    if (!theater) {
       return res.status(404).json({ message: "Theater not found!" });
     }
-    if (!theaterData.films_showing || !Array.isArray(theaterData.films_showing)) {
-      return res.status(500).json({ message: "Invalid theater data. No films found." });
+
+    const sourceAudi = theater.audis.find(a => a.audi_number === audi_number);
+    if (!sourceAudi) {
+      return res.status(404).json({ message: "Source Audi not found!" });
     }
-    const movie = theaterData.films_showing.find(film => film.title === movie_title);
-    if (!movie) {
-      return res.status(404).json({ message: "Movie not found!" });
+
+    const sourceFilm = sourceAudi.films_showing.find(
+      f => f.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
+    );
+
+    if (!sourceFilm) {
+      return res.status(404).json({ message: "Movie not found in source audi!" });
     }
-    if (!movie.showtimes || !Array.isArray(movie.showtimes)) {
-      return res.status(500).json({ message: "Invalid movie data. No showtimes found." });
-    }
-    const showtime = movie.showtimes.find(show => show._id.toString() === showtime_id);
-    if (!showtime) {
+
+    const showtimeIndex = sourceFilm.showtimes.findIndex(st => st._id.toString() === showtime_id);
+    if (showtimeIndex === -1) {
       return res.status(404).json({ message: "Showtime not found!" });
     }
-    showtime.time = new_time;
-    await theaterData.save();
+
+    // Get the showtime object
+    const showtimeToUpdate = sourceFilm.showtimes[showtimeIndex];
+
+    // If moving audi or movie, delete from current and re-add to target
+    const isMovingAudi = new_audi_number && new_audi_number !== audi_number;
+    const isMovingMovie = new_movie_title && new_movie_title.toLowerCase().trim() !== movie_title.toLowerCase().trim();
+
+    if (isMovingAudi || isMovingMovie) {
+      // Remove from current film's showtimes
+      sourceFilm.showtimes.splice(showtimeIndex, 1);
+
+      const targetAudi = theater.audis.find(a => a.audi_number === (new_audi_number || audi_number));
+      if (!targetAudi) {
+        return res.status(404).json({ message: "Target Audi not found!" });
+      }
+
+      const targetMovieTitle = new_movie_title || movie_title;
+      let targetFilm = targetAudi.films_showing.find(
+        f => f.title.toLowerCase().trim() === targetMovieTitle.toLowerCase().trim()
+      );
+
+      if (!targetFilm) {
+        // Add new film entry if it doesn't exist
+        targetFilm = {
+          title: targetMovieTitle,
+          language: sourceFilm.language,
+          showtimes: []
+        };
+        targetAudi.films_showing.push(targetFilm);
+      }
+
+      // Add updated showtime to new location
+      targetFilm.showtimes.push({
+        time: new_time || showtimeToUpdate.time,
+        audi_number: new_audi_number || audi_number,
+        prices: new_prices || showtimeToUpdate.prices
+      });
+
+      await theater.save();
+      return res.status(200).json({
+        message: "Showtime moved and updated successfully!"
+      });
+    }
+
+    // If not moving, just update fields in-place
+    if (new_time) showtimeToUpdate.time = new_time;
+    if (new_audi_number) showtimeToUpdate.audi_number = new_audi_number;
+    if (new_prices && typeof new_prices === "object") {
+      showtimeToUpdate.prices = {
+        ...showtimeToUpdate.prices,
+        ...new_prices
+      };
+    }
+
+    await theater.save();
     return res.status(200).json({
-      message: "Showtime updated successfully!",
-      updatedShowtime: showtime
+      message: "Showtime updated successfully",
+      updatedShowtime: showtimeToUpdate
     });
+
   } catch (error) {
-    return res.status(500).json({ message: "Error updating the showtime", error: error.message });
+    console.error("Error updating showtime:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+
  
 
 const addShowtime = async (req, res) => {
