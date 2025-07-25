@@ -40,7 +40,7 @@ const theaterSchema = new mongoose.Schema({
     address: { type: String, required: true },
     popular: { type: Boolean, required: true },
     contact: { type: String, required: true },
-    audis: [audiSchema] // 👈 Multiple audis inside a theater
+    audis: [audiSchema] 
 });
 
 

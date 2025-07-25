@@ -35,61 +35,59 @@ const updateShowtime = async (req, res) => {
     return res.status(500).json({ message: "Error updating the showtime", error: error.message });
   }
 };
+ 
+
 const addShowtime = async (req, res) => {
-    const { movie_title, theater_id, showtime } = req.body;
+  const { theater_id, audi_number, movie_title, language, new_showtime } = req.body;
 
+  if (!theater_id || !audi_number || !movie_title || !language || !new_showtime) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
 
-    if (!movie_title || !theater_id || !showtime) {
-        return res.status(400).json({ message: "Fill all the required fields" });
+  try {
+    const theater = await Theater.findOne({ theater_id });
+
+    if (!theater) {
+      return res.status(404).json({ message: "Theater not found." });
+    }
+console.log("Fetched Theater:", theater);
+    if (!Array.isArray(theater.audis) || theater.audis.length === 0) {
+      return res.status(400).json({ message: "Audis must be a non-empty array." });
     }
 
-    try {
-        const theaterData = await Theater.findOne({ theater_id });
-
-        if (!theaterData) {
-            return res.status(404).json({ message: "Theater not found" });
-        }
-
-
-        const movie = theaterData.films_showing.find(film => film.title === movie_title);
-        if (!movie) {
-            return res.status(404).json({ message: "Movie not found in this theater" });
-        }
-
-
-        if (!Array.isArray(movie.showtimes)) {
-            movie.showtimes = [];
-        }
-
-
-        const existingShowtime = movie.showtimes.some(s => {
-            return s.time.toLowerCase().trim() === showtime.toLowerCase().trim();
-        });
-
-        if (existingShowtime) {
-            return res.status(409).json({ message: "Showtime already exists for this movie" });
-        }
-
-
-        const newShowtime = {
-            _id: new mongoose.Types.ObjectId(),
-            time: showtime.trim(),
-            seating_layout: req.body.seating_layout || []
-        };
-
-        movie.showtimes.push(newShowtime);
-        await theaterData.save();
-
-
-        return res.status(201).json({ 
-            message: "Showtime added successfully!", 
-            showtime: newShowtime 
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: "Error adding the showtime", error: error.message });
+    const audi = theater.audis.find(a => a.audi_number === audi_number);
+    if (!audi) {
+      return res.status(404).json({ message: "Audi not found in the theater." });
     }
+
+    let film = audi.films_showing.find(f => f.title.toLowerCase().trim() === movie_title.toLowerCase().trim());
+
+    if (!film) {
+      audi.films_showing.push({
+        title: movie_title,
+        language: language,
+        showtimes: [{ time: new_showtime, audi_number }]
+      });
+    } else {
+      const alreadyExists = film.showtimes.some(st => st.time === new_showtime);
+      if (alreadyExists) {
+        return res.status(400).json({ message: "Showtime already exists for this movie." });
+      }
+
+      film.showtimes.push({ time: new_showtime, audi_number });
+    }
+
+    await theater.save();
+    res.status(200).json({ message: "Showtime added successfully." });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to add showtime", error: error.message });
+  }
 };
+
+
+
 
 
 

@@ -81,33 +81,56 @@ const addTheater = async (req, res) => {
 };
 
 const getSeatLayout = async (req, res) => {
-    const { name, movie_title, showtime } = req.params;
+    const { theater_id, movie_title, showtime } = req.query;
+
+    if (!theater_id || !movie_title || !showtime) {
+        return res.status(400).json({ message: "Please provide theater_id, movie_title, and showtime." });
+    }
+
     try {
-        const theaterData = await theater.findOne({
-            name: { $regex: new RegExp(`^${name}$`, "i") },
-        });
+        const theaterData = await theater.findOne({ theater_id });
         if (!theaterData) {
             return res.status(404).json({ message: "Theater not found." });
         }
-        const movie = theaterData.films_showing.find(film => film.title === movie_title);
-        if (!movie) {
-            return res.status(404).json({ message: "Movie not found in this theater." });
+
+        let foundLayout = null;
+
+        for (const audi of theaterData.audis) {
+            const film = audi.films_showing.find(f =>
+                f.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
+            );
+
+            if (film) {
+                const matchedShow = film.showtimes.find(s =>
+                    s.time.trim() === showtime.trim() &&
+                    s.audi_number.trim() === audi.audi_number.trim()
+                );
+
+                if (matchedShow) {
+                    foundLayout = audi.seating_layout;
+                    break;
+                }
+            }
         }
 
-        const show = movie.showtimes.find(st => st.time === showtime);
-        if (!show) {
-            return res.status(404).json({ message: "Showtime not found for this movie." });
+        if (!foundLayout) {
+            return res.status(404).json({ message: "Showtime or movie not found in any audi." });
         }
 
         return res.status(200).json({
             message: "Seat layout fetched successfully.",
-            layout: show.seating_layout
+            layout: foundLayout
         });
 
     } catch (error) {
-        return res.status(500).json({ message: "Error fetching seat layout", error: error.message });
+        return res.status(500).json({
+            message: "Error fetching seat layout",
+            error: error.message
+        });
     }
 };
+
+
 const getTheaterForMovie = async (req, res) => {
     try {
         const { location, title } = req.query;
@@ -199,4 +222,40 @@ const deleteTheater = async (req, res) => {
         return res.status(500).json({ message: "Error deleting theater", error: error.message });
     }
 };
-module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat }
+
+
+const addAudi = async (req, res) => {
+  const { theater_id, audis } = req.body;
+
+  if (!theater_id || !Array.isArray(audis) || audis.length === 0) {
+    return res.status(400).json({ message: "theater_id and at least one audi must be provided." });
+  }
+
+  try {
+    const theaterData= await theater.findOne({ theater_id });
+
+    if (!theaterData) {
+      return res.status(404).json({ message: "Theater not found." });
+    }
+
+    const existingAudiNumbers = theaterData.audis.map(a => a.audi_number);
+
+    for (const newAudi of audis) {
+      if (existingAudiNumbers.includes(newAudi.audi_number)) {
+        return res.status(400).json({ message: `Audi '${newAudi.audi_number}' already exists in the theater.` });
+      }
+      theaterData.audis.push(newAudi); 
+    }
+
+    await theaterData.save();
+    return res.status(201).json({ message: "Audi(s) added successfully." });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to add audi(s)", error: error.message });
+  }
+};
+
+
+
+module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat,addAudi }
