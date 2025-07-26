@@ -107,10 +107,6 @@ const updateShowtime = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
-
-
- 
-
 const addShowtime = async (req, res) => {
   const { theater_id, audi_number, movie_title, language, new_showtime, prices } = req.body;
 
@@ -186,12 +182,6 @@ const addShowtime = async (req, res) => {
     res.status(500).json({ message: "Failed to add showtime", error: error.message });
   }
 };
-
-
-
-
-
-
 
 const getShowtime = async (req, res) => {
   const { theater_id, movie_title } = req.query;

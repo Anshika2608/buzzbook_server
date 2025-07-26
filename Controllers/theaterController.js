@@ -131,37 +131,44 @@ const getSeatLayout = async (req, res) => {
     }
 };
 
-
 const getTheaterForMovie = async (req, res) => {
-    try {
-        const { location, title } = req.query;
+  try {
+    const { location, title } = req.query;
 
-        if (!title) {
-            return res.status(400).json({ message: "Provide film for which theater has to be shown" });
-        }
-
-        if (!location) {
-            return res.status(400).json({ message: "Select location first!" });
-        }
-
-        const theaters = await theater.find({
-            location: { $regex: location, $options: "i" },
-            audis: {
-                $elemMatch: {
-                    "films_showing.title": title
-                }
-            }
-        });
-
-        if (!theaters || theaters.length === 0) {
-            return res.status(404).json({ message: "This movie is not available at any theater in this location" });
-        }
-
-        return res.status(200).json({ message: "Theaters shown successfully", theaters });
-    } catch (error) {
-        return res.status(500).json({ message: "Error while getting theaters for particular film", error: error.message });
+    if (!title) {
+      return res.status(400).json({ message: "Provide film for which theater has to be shown" });
     }
+
+    if (!location) {
+      return res.status(400).json({ message: "Select location first!" });
+    }
+
+    const theaterData = await theater.find({
+      "location.city": { $regex: location, $options: "i" },
+      audis: {
+        $elemMatch: {
+          films_showing: {
+            $elemMatch: {
+              title: { $regex: title, $options: "i" }
+            }
+          }
+        }
+      }
+    });
+
+    if (!theaterData || theaterData.length === 0) {
+      return res.status(404).json({ message: "This movie is not available at any theater in this location" });
+    }
+
+    return res.status(200).json({ message: "Theaters shown successfully", theaterData });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error while getting theaters for particular film",
+      error: error.message
+    });
+  }
 };
+
 
 const bookSeat = async (req, res) => {
     try {
@@ -223,8 +230,6 @@ const deleteTheater = async (req, res) => {
         return res.status(500).json({ message: "Error deleting theater", error: error.message });
     }
 };
-
-
 const addAudi = async (req, res) => {
   const { theater_id, audis } = req.body;
 
@@ -327,7 +332,5 @@ const addFilmToAudi = async (req, res) => {
     res.status(500).json({ message: "Failed to add film", error: error.message });
   }
 };
-
-
 
 module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat,addAudi,addFilmToAudi }
