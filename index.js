@@ -12,7 +12,9 @@ app.use(express.static(path.join(__dirname, "public")));
 const port = process.env.PORT || 3000;
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000",
+      "https://buzzbook-rho.vercel.app"
+    ],
     credentials: true, 
   })
 );
