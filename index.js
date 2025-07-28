@@ -13,7 +13,9 @@ const port = process.env.PORT || 3000;
 app.use(
   cors({
     origin: ["http://localhost:3000",
-      "https://buzzbook-rho.vercel.app"
+      "https://buzzbook-rho.vercel.app",
+      "buzzbook-project.vercel.app",
+      "buzzbook-project-bab3.vercel.app"
     ],
     credentials: true, 
   })
