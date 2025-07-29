@@ -98,17 +98,19 @@ const addSnack = async (req, res) => {
 
 
 const deleteSnack = async (req, res) => {
-  const { snackId } = req.params;
-    if (!snackId) {
-        return res.status(400).json({ message: "Snack ID is required." });
-    }
-    try {   
-        const snack = await Snack.findByIdAndDelete(snackId);
+  const { _id } = req.query;
+
+  if (!_id) {
+    return res.status(400).json({ message: "Snack ID is required." });
+  }
+
+  try {
+    const snack = await Snack.findByIdAndDelete(_id);
         if (!snack) {
             return res.status(404).json({ message: "Snack not found." });
         }
         const io = getIO();
-        io.emit("snackDeleted", snackId);
+        io.emit("snackDeleted", _id);
         return res.status(200).json({ message: "Snack deleted successfully." });
     } catch (error) {
         console.error("Error deleting snack:", error);
