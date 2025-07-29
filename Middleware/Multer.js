@@ -37,7 +37,9 @@ const upload = multer({
     fileFilter: isImage
 })
 const uploadMultiple = upload.fields([
-    { name: 'poster_img', maxCount: 3 }
+    { name: 'poster_img', maxCount: 3 },
+    
 ]);
+const uploadSnackImages = upload.fields([{ name: 'snack_img', maxCount: 2 }]);
 
-module.exports = {uploadMultiple};
+module.exports = {uploadMultiple,uploadSnackImages};
