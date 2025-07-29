@@ -54,7 +54,7 @@ const movieSchema=new mongoose.Schema({
     },
     trailer:{
         type:Array,
-        required:true
+        required:false
     }
     
 })

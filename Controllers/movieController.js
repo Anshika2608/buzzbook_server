@@ -11,7 +11,7 @@ const getMovie = async (req, res) => {
 
 }
 const addMovie = async (req, res) => {
-    const { title, language, description, Type, release_date, genre, adult, duration, rating, production_house, director, cast } = req.body;
+    const { title, language, description, Type, release_date, genre, adult, duration, rating, production_house, director, cast, trailer } = req.body;
     const poster_img = req.files && req.files['poster_img'] ? req.files['poster_img'] : [];
 
     if (
@@ -35,35 +35,43 @@ const addMovie = async (req, res) => {
             }
         }
 
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
         const durationRegex = /^[0-9]$/;
-        const durationNumber = Number(duration);
 
-        if (isNaN(durationNumber) || durationNumber <= 0) {
-            return res.status(401).json({ message: "Duration must be a positive number" });
+
+        const parsedDuration = Number(duration);
+        if (isNaN(parsedDuration) || parsedDuration <= 0) {
+            return res.status(400).json({ message: "Duration must be a positive number" });
         }
 
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(release_date)) {
-            return res.status(401).json({ message: "relase date must be in format DD-MM-YYYY!" })
-        } else {
-            const Movie = new movie({
-                title,
-                language,
-                description,
-                Type,
-                release_date,
-                genre,
-                adult,
-                duration,
-                rating,
-                production_house,
-                director,
-                cast,
-                poster_img: posterImageUrls
-            })
-            const newMovie = await Movie.save();
-            return res.status(201).json({ message: "movie added successfully", movie: newMovie })
+            return res.status(400).json({ message: "Release date must be in format YYYY-MM-DD" });
         }
+        const parsedDate = new Date(release_date);
+        const isAdult = adult === 'true' || adult === true;
+        const genreArray = Array.isArray(genre) ? genre : genre.split(',').map(g => g.trim());
+        const castArray = Array.isArray(cast) ? cast : cast.split(',').map(c => c.trim());
+        const trailerArray = trailer ? (Array.isArray(trailer) ? trailer : trailer.split(',').map(t => t.trim())) : [];
+        const Movie = new movie({
+            title,
+            language,
+            description,
+            Type,
+            release_date: parsedDate,
+            genre: genreArray,
+            adult: isAdult,
+            duration: parsedDuration,
+            rating,
+            production_house,
+            director,
+            cast: castArray,
+            poster_img: posterImageUrls,
+            trailer: trailerArray
+        });
+        const newMovie = await Movie.save();
+        return res.status(201).json({ message: "movie added successfully", movie: newMovie })
+
     } catch (error) {
         return res.status(500).json({ message: "error while adding a new movie", error: error.message })
     }
@@ -121,7 +129,7 @@ const getMovieDetails = async (req, res) => {
             return res.status(404).json({ message: "Movie not found" });
         }
 
-        res.status(200).json({ success: true, movie:movieData });
+        res.status(200).json({ success: true, movie: movieData });
     } catch (error) {
         res.status(500).json({ message: "Error retrieving movie details", error: error.message });
     }
