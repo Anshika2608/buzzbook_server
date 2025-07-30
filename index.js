@@ -38,7 +38,7 @@ app.use("/showtime", require("./Routes/ShowtimeRoutes"));
 app.use("/profile", require("./Routes/ProfileRoutes"));
 app.use("/booking", require("./Routes/BookingRoutes"));
 app.use("/snack", require("./Routes/SnackRoutes"));
-
+app.use("/parking", require("./Routes/parkingRoute"));
 initSocket(server);
 
 
