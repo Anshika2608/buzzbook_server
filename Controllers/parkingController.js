@@ -1,7 +1,7 @@
-const TheaterParkingLayout = require("../Models/parkingModel");
+const TheaterParkingLayout = require("../Models/ParkingModel");
 const generateParkingFloors = require("../Middleware/ParkingLayout");
 
-// Create Parking Layout
+
 const createParkingLayout = async (req, res) => {
   try {
     const { theater_id, floors } = req.body;
@@ -34,7 +34,7 @@ const createParkingLayout = async (req, res) => {
   }
 };
 
-// Get Available Parking Slots
+
 const getAvailableParkingSlots = async (req, res) => {
   try {
     const { theaterId, time } = req.query;
