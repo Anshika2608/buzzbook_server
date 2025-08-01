@@ -1,5 +1,4 @@
-// controllers/locationController.js
-const Theater = require("../Models/theaterModel"); // adjust path as needed
+const Theater = require("../Models/theaterModel"); 
 
 const getLocations = async (req, res) => {
   try {
@@ -17,11 +16,15 @@ const getLocations = async (req, res) => {
       }
     ]);
 
-    res.status(200).json(cities);
+    
+    const cityNames = cities.map((c) => c.city);
+
+    res.status(200).json(cityNames);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch locations" });
   }
 };
+
 
 module.exports = { getLocations };

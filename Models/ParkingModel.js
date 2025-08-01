@@ -1,4 +1,3 @@
-// models/parkingBlockModel.js
 const mongoose = require("mongoose");
 
 const slotSchema = new mongoose.Schema({
@@ -8,34 +7,35 @@ const slotSchema = new mongoose.Schema({
   hold_expires_at: { type: Date, default: null }
 }, { _id: false });
 
-const parkingBlockSchema = new mongoose.Schema({
+const bookingSchema = new mongoose.Schema({
+  slot_id: { type: String, required: true },
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  time: { type: Date, required: true },
+  is_paid: { type: Boolean, default: false }
+}, { _id: false });
+
+const blockSchema = new mongoose.Schema({
+  block_id: { type: String, required: true },
+  type: { type: String, enum: ["2-wheeler", "4-wheeler"], required: true },
+  price: { type: Number, required: true },
+  slots: [slotSchema],
+  bookings: [bookingSchema],
+  is_full: { type: Boolean, default: false }
+}, { _id: false });
+
+const floorSchema = new mongoose.Schema({
+  floor: { type: Number, required: true },
+  blocks: [blockSchema]
+}, { _id: false });
+
+const parkingLayoutSchema = new mongoose.Schema({
   theater_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Theater",
-    required: true
+    required: true,
+    unique: true
   },
-  block_id: {
-    type: String,
-    required: true
-  },
-  floor: {
-    type: Number,
-    default: 0
-  },
-  type: {
-    type: String,
-    enum: ["2-wheeler", "4-wheeler"],
-    required: true
-  },
-  price: {
-    type: Number,
-    required: true
-  },
-  slots: [slotSchema],
-  is_full: {
-    type: Boolean,
-    default: false
-  }
+  floors: [floorSchema]
 });
 
-module.exports = mongoose.model("ParkingBlock", parkingBlockSchema);
+module.exports = mongoose.model("TheaterParkingLayout", parkingLayoutSchema);

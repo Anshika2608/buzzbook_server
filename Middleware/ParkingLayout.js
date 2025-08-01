@@ -1,58 +1,73 @@
 // middleware/generateParkingBlocks.js
-const generateParkingBlocks = ({
+
+const generateParkingFloors = ({
   theater_id,
-  floor,
-  fourWheelerBlocks,
-  twoWheelerBlocks,
-  capacity_per_block,
-  four_wheeler_price,
-  two_wheeler_price
+  floors
 }) => {
-  const blocks = [];
+  const layout = {
+    theater_id,
+    floors: []
+  };
 
-  // 4-WHEELER BLOCKS
-  for (let i = 1; i <= fourWheelerBlocks; i++) {
-    const block_id = `4W-B${i}`;
-    const slots = Array.from({ length: capacity_per_block }, (_, idx) => ({
-      slot_id: `S${idx + 1}`,
-      is_held: false,
-      is_booked: false,
-      hold_expires_at: null
-    }));
-
-    blocks.push({
-      theater_id,
-      block_id,
+  for (const floorConfig of floors) {
+    const {
       floor,
-      type: "4-wheeler",
-      price: four_wheeler_price,
-      slots,
-      is_full: false
-    });
+      fourWheelerBlocks,
+      twoWheelerBlocks,
+      capacity_per_block,
+      four_wheeler_price,
+      two_wheeler_price
+    } = floorConfig;
+
+    const floorData = {
+      floor,
+      blocks: []
+    };
+
+    let blockNum = 1;
+
+    // 4-WHEELER BLOCKS
+    for (let i = 1; i <= (fourWheelerBlocks || 0); i++) {
+      const slots = Array.from({ length: capacity_per_block }, (_, idx) => ({
+        slot_id: `S${idx + 1}`,
+        is_held: false,
+        is_booked: false,
+        hold_expires_at: null
+      }));
+
+      floorData.blocks.push({
+        block_id: `4W-B${blockNum++}`,
+        type: "4-wheeler",
+        price: four_wheeler_price,
+        slots,
+        bookings: [],
+        is_full: false
+      });
+    }
+
+    // 2-WHEELER BLOCKS
+    for (let i = 1; i <= (twoWheelerBlocks || 0); i++) {
+      const slots = Array.from({ length: capacity_per_block }, (_, idx) => ({
+        slot_id: `S${idx + 1}`,
+        is_held: false,
+        is_booked: false,
+        hold_expires_at: null
+      }));
+
+      floorData.blocks.push({
+        block_id: `2W-B${blockNum++}`,
+        type: "2-wheeler",
+        price: two_wheeler_price,
+        slots,
+        bookings: [],
+        is_full: false
+      });
+    }
+
+    layout.floors.push(floorData);
   }
 
-  // 2-WHEELER BLOCKS
-  for (let i = 1; i <= twoWheelerBlocks; i++) {
-    const block_id = `2W-B${i}`;
-    const slots = Array.from({ length: capacity_per_block }, (_, idx) => ({
-      slot_id: `S${idx + 1}`,
-      is_held: false,
-      is_booked: false,
-      hold_expires_at: null
-    }));
-
-    blocks.push({
-      theater_id,
-      block_id,
-      floor,
-      type: "2-wheeler",
-      price: two_wheeler_price,
-      slots,
-      is_full: false
-    });
-  }
-
-  return blocks;
+  return layout;
 };
 
-module.exports = generateParkingBlocks;
+module.exports = generateParkingFloors;
