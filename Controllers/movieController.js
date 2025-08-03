@@ -87,7 +87,7 @@ const getMovieFromLocation = async (req, res) => {
     try {
         console.log("Searching for location:", location);
 
-        const theaters = await Theater.find({ location: { $regex: new RegExp("^" + location, "i") } });
+        const theaters = await Theater.find({ "location.city": { $regex: new RegExp("^" + location, "i") } });
         console.log("Matched theaters:", theaters);
 
         if (theaters.length === 0) {
