@@ -12,18 +12,25 @@ const authenticate = async (req, res, next) => {
 
     const decoded = jwt.verify(token, keysecret);
     const userId = decoded._id || decoded.id;
-    const user =
-      (await NormalUser.findById(userId)) ||
-      (await GoogleUser.findById(userId));
+    let user = await NormalUser.findById(userId);
+    let userType = "normal";
 
     if (!user) {
-      return res.status(401).json({ status: 401, message: "User not found" });
+      user = await GoogleUser.findById(userId);
+      userType = "google";
+    }
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ status: 401, message: "User not found" });
     }
 
 
     req.token = token;
     req.rootUser = user;
     req.userId = user._id;
+    req.userType = userType; 
 
     next();
   } catch (error) {
