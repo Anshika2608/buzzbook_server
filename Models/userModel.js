@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+    mobile: { type: String, default: "" },
+    birthday: { type: Date, default: null },
+    gender: { type: String, enum: ["Male", "Female", "Other"], default: "Other" },
+    profilePicture: { type: String, default: "" },
     password: {
         type: String,
         required: true,
@@ -40,8 +44,8 @@ const userSchema = new mongoose.Schema({
             }
         }
     ],
-    verifytoken:{
-        type:String,
+    verifytoken: {
+        type: String,
     }
 });
 userSchema.pre("save", async function (next) {
@@ -71,4 +75,4 @@ userSchema.methods.generateAuthToken = async function () {
 
 
 
-module.exports=mongoose.model('users',userSchema)
+module.exports = mongoose.model('users', userSchema)
