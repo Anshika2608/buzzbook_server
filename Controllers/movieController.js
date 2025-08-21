@@ -1,6 +1,8 @@
 const movie = require("../Models/movieModel")
 const Theater = require("../Models/theaterModel")
 const cloudinary = require("../Middleware/Cloudinary");
+const { getIO } = require("../socket");
+const fetchStats = require("../statsHelper");
 const getMovie = async (req, res) => {
     try {
         const listOfMovies = await movie.find({});
@@ -23,6 +25,14 @@ const addMovie = async (req, res) => {
     }
 
     try {
+        const existingMovie = await movie.findOne({
+            title: title.trim(),
+            release_date: new Date(release_date),
+        });
+
+        if (existingMovie) {
+            return res.status(400).json({ message: "Movie already exists in database!" });
+        }
         const posterImageUrls = [];
         for (const file of poster_img) {
             try {
@@ -30,7 +40,7 @@ const addMovie = async (req, res) => {
                 const upload = await cloudinary.uploader.upload(file.path);
                 posterImageUrls.push(upload.secure_url);
             } catch (error) {
-                console.error("Error while uploading the bill image:", error);
+                console.error("Error while uploading the poster image:", error);
                 return res.status(400).json({ message: "Error while uploading the poster image", error: error.message });
             }
         }
@@ -70,6 +80,9 @@ const addMovie = async (req, res) => {
             trailer: trailerArray
         });
         const newMovie = await Movie.save();
+        const updatedStats = await fetchStats();
+        const io = getIO();
+        io.emit("statsUpdated", updatedStats);
         return res.status(201).json({ message: "movie added successfully", movie: newMovie })
 
     } catch (error) {
