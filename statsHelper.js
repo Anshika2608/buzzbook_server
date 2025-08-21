@@ -1,6 +1,6 @@
 const Movie = require("./Models/movieModel");
 const Theater = require("./Models/theaterModel");
-const Booking = require("./Models/bookingModel");
+const Booking = require("./Models/BookingModel");
 const Snack = require("./Models/snackModel");
 const User = require("./Models/userModel");
 
