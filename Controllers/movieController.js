@@ -60,12 +60,14 @@ const addMovie = async (req, res) => {
         }
         const parsedDate = new Date(release_date);
         const isAdult = adult === 'true' || adult === true;
+        const languageArray = Array.isArray(language) ? language : language.split(',').map(l => l.trim());
+
         const genreArray = Array.isArray(genre) ? genre : genre.split(',').map(g => g.trim());
         const castArray = Array.isArray(cast) ? cast : cast.split(',').map(c => c.trim());
         const trailerArray = trailer ? (Array.isArray(trailer) ? trailer : trailer.split(',').map(t => t.trim())) : [];
         const Movie = new movie({
             title,
-            language,
+            language: languageArray,
             description,
             Type,
             release_date: parsedDate,
@@ -83,6 +85,7 @@ const addMovie = async (req, res) => {
         const updatedStats = await fetchStats();
         const io = getIO();
         io.emit("statsUpdated", updatedStats);
+        io.emit("movieAdded", newMovie);
         return res.status(201).json({ message: "movie added successfully", movie: newMovie })
 
     } catch (error) {
@@ -147,4 +150,27 @@ const getMovieDetails = async (req, res) => {
         res.status(500).json({ message: "Error retrieving movie details", error: error.message });
     }
 };
-module.exports = { getMovie, addMovie, getMovieFromLocation, getMovieDetails }
+const deleteMovie = async (req, res) => {
+    try {
+        const { movieId } = req.params;
+        if (!movieId) {
+            return res.status(400).json({ message: "movieId is required!" })
+        }
+        const movieToDelete = await movie.findById(movieId);
+        if (!movieToDelete) {
+            return res.status(400).json({ message: "movie not found!" })
+        }
+        if (movieToDelete.poster && movieToDelete.poster.public_id) {
+            await cloudinary.uploader.destroy(movieToDelete.poster.public_id);
+        }
+        await movie.findByIdAndDelete(movieId);
+        const stats = await fetchStats();
+        const io = getIO();
+        io.emit("movieDeleted", movieId);
+        io.emit("statsUpdated", stats);
+        return res.status(200).json({ message: "movie deleted successfully!",movieId,stats })
+    } catch (err) {
+        return res.status(500).json({ message: "Error in deleting movie", error: err.message })
+    }
+}
+module.exports = { getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie }

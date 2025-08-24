@@ -5,7 +5,7 @@ const movieSchema=new mongoose.Schema({
         required:true
     },
     language: {
-        type:String,
+        type:Array,
         required:true
     },
     release_date:{
