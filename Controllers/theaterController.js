@@ -1,4 +1,6 @@
 const theater = require("../Models/theaterModel");
+const {getIO}=require("../socket")
+const fetchStats =require("../statsHelper")
 const getTheater = async (req, res) => {
   try {
 
@@ -334,5 +336,25 @@ const addFilmToAudi = async (req, res) => {
     res.status(500).json({ message: "Failed to add film", error: error.message });
   }
 };
+const getTheaterById = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi }
+    // validate ObjectId before querying
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid Theater ID" });
+    }
+
+    const Theater = await theater.findById(id).populate("audis.films_showing");
+
+    if (!Theater) {
+      return res.status(404).json({ message: "Theater not found" });
+    }
+
+    res.json(Theater);
+  } catch (error) {
+    console.error("Error in getTheaterById:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi ,getTheaterById}
