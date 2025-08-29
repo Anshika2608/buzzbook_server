@@ -1,6 +1,7 @@
 const theater = require("../Models/theaterModel");
 const {getIO}=require("../socket")
 const fetchStats =require("../statsHelper")
+const mongoose = require("mongoose");
 const getTheater = async (req, res) => {
   try {
 
@@ -42,7 +43,6 @@ const addTheater = async (req, res) => {
         language: film.language,
         showtimes: film.showtimes.map(show => ({
           time: show.time,
-          audi_number: show.audi_number,
           prices: show.prices
         }))
       }));
@@ -242,7 +242,7 @@ const addAudi = async (req, res) => {
   }
 
   try {
-    const theaterData = await theater.findOne({ theater_id });
+    const theaterData = await theater.findById(theater_id)
 
     if (!theaterData) {
       return res.status(404).json({ message: "Theater not found." });
@@ -340,7 +340,6 @@ const getTheaterById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // validate ObjectId before querying
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ message: "Invalid Theater ID" });
     }

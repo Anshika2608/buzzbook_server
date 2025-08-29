@@ -130,25 +130,27 @@ const getMovieFromLocation = async (req, res) => {
         });
     }
 };
+
 const getMovieDetails = async (req, res) => {
-    try {
-        const { title } = req.query;
-        if (!title) {
-            return res.status(400).json({ message: "Movie title is required" });
-        }
+  try {
+    const { id } = req.params;
 
-        const movieData = await movie.findOne({
-            title: { $regex: new RegExp("^" + title + "$", "i") }
-        });
-
-        if (!movieData) {
-            return res.status(404).json({ message: "Movie not found" });
-        }
-
-        res.status(200).json({ success: true, movie: movieData });
-    } catch (error) {
-        res.status(500).json({ message: "Error retrieving movie details", error: error.message });
+    if (!id) {
+      return res.status(400).json({ message: "Movie ID is required" });
     }
+
+    const movieData = await movie.findById(id); 
+
+    if (!movieData) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+
+    res.status(200).json({ success: true, movie: movieData });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error retrieving movie details", error: error.message });
+  }
 };
 const deleteMovie = async (req, res) => {
     try {

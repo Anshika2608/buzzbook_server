@@ -8,6 +8,6 @@ const authenticate = require("../Middleware/Authenticate")
 router.get("/movie_list", getMovie);
 router.post("/add_movie", uploadMultiple, addMovie);
 router.get("/getMovie",getMovieFromLocation)
-router.get("/movieDetails",authenticate,getMovieDetails)
+router.get("/movieDetails/:id",getMovieDetails)
 router.delete("/deleteMovie/:movieId",deleteMovie)
 module.exports = router;

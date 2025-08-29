@@ -10,13 +10,12 @@ const seatSchema = new mongoose.Schema({
 
 const showtimeSchema = new mongoose.Schema({
   time: { type: String, required: true },
-  audi_number: { type: String, required: true },
   prices: {
-    VIP: { type: Number },
-    Premium: { type: Number },
-    Regular: { type: Number },
-    Sofa: { type: Number },
-    Recliner: { type: Number }
+    VIP: { type: Number,default:0 },
+    Premium: { type: Number,default:0 },
+    Regular: { type: Number ,default:0},
+    Sofa: { type: Number,default:0 },
+    Recliner: { type: Number ,default:0}
   }
 });
 
