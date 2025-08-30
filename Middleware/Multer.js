@@ -38,6 +38,7 @@ const upload = multer({
 })
 const uploadMultiple = upload.fields([
     { name: 'poster_img', maxCount: 3 },
+    {name:"cast_img",maxCount:6}
     
 ]);
 const uploadSnackImages = upload.fields([{ name: 'snack_img', maxCount: 2 }]);

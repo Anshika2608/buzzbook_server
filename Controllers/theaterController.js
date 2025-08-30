@@ -76,7 +76,7 @@ const addTheater = async (req, res) => {
     });
 
     await newTheater.save();
-    const io = req.app.get("io");
+    const io = getIO();
     io.emit("statsUpdated", { type: "theater", data: newTheater });
     res.status(201).json({ success: true, message: "Theater with audis created successfully", theater: newTheater });
   } catch (error) {

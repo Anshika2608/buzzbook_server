@@ -12,87 +12,135 @@ const getMovie = async (req, res) => {
     }
 
 }
+
 const addMovie = async (req, res) => {
-    const { title, language, description, Type, release_date, genre, adult, duration, rating, production_house, director, cast, trailer } = req.body;
-    const poster_img = req.files && req.files['poster_img'] ? req.files['poster_img'] : [];
+  try {
+    const {
+      title,
+      language,
+      description,
+      Type,
+      industry,
+      release_date,
+      genre,
+      adult,
+      duration,
+      rating,
+      production_house,
+      director,
+      cast, 
+      trailer,
+      certification,
+      status
+    } = req.body;
 
     if (
-        title === undefined || language === undefined || description === undefined || Type === undefined || release_date === undefined ||
-        genre === undefined || adult === undefined || duration === undefined || rating === undefined || production_house === undefined ||
-        director === undefined || cast === undefined
+      !title || !language || !description || !Type || !industry || !release_date ||
+      !genre || adult === undefined || !duration || !rating ||
+      !production_house || !director || !cast
     ) {
-        return res.status(401).json({ message: "Fill all the required fields!" });
+      return res.status(400).json({ message: "Fill all the required fields!" });
     }
 
-    try {
-        const existingMovie = await movie.findOne({
-            title: title.trim(),
-            release_date: new Date(release_date),
-        });
+    const existingMovie = await movie.findOne({
+      title: title.trim(),
+      release_date: new Date(release_date)
+    });
 
-        if (existingMovie) {
-            return res.status(400).json({ message: "Movie already exists in database!" });
-        }
-        const posterImageUrls = [];
-        for (const file of poster_img) {
-            try {
-                console.log("Uploading to Cloudinary:", file.path);
-                const upload = await cloudinary.uploader.upload(file.path);
-                posterImageUrls.push(upload.secure_url);
-            } catch (error) {
-                console.error("Error while uploading the poster image:", error);
-                return res.status(400).json({ message: "Error while uploading the poster image", error: error.message });
-            }
-        }
-
-
-        const durationRegex = /^[0-9]$/;
-
-
-        const parsedDuration = Number(duration);
-        if (isNaN(parsedDuration) || parsedDuration <= 0) {
-            return res.status(400).json({ message: "Duration must be a positive number" });
-        }
-
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateRegex.test(release_date)) {
-            return res.status(400).json({ message: "Release date must be in format YYYY-MM-DD" });
-        }
-        const parsedDate = new Date(release_date);
-        const isAdult = adult === 'true' || adult === true;
-        const languageArray = Array.isArray(language) ? language : language.split(',').map(l => l.trim());
-
-        const genreArray = Array.isArray(genre) ? genre : genre.split(',').map(g => g.trim());
-        const castArray = Array.isArray(cast) ? cast : cast.split(',').map(c => c.trim());
-        const trailerArray = trailer ? (Array.isArray(trailer) ? trailer : trailer.split(',').map(t => t.trim())) : [];
-        const Movie = new movie({
-            title,
-            language: languageArray,
-            description,
-            Type,
-            release_date: parsedDate,
-            genre: genreArray,
-            adult: isAdult,
-            duration: parsedDuration,
-            rating,
-            production_house,
-            director,
-            cast: castArray,
-            poster_img: posterImageUrls,
-            trailer: trailerArray
-        });
-        const newMovie = await Movie.save();
-        const updatedStats = await fetchStats();
-        const io = getIO();
-        io.emit("statsUpdated", updatedStats);
-        io.emit("movieAdded", newMovie);
-        return res.status(201).json({ message: "movie added successfully", movie: newMovie })
-
-    } catch (error) {
-        return res.status(500).json({ message: "error while adding a new movie", error: error.message })
+    if (existingMovie) {
+      return res.status(400).json({ message: "Movie already exists in database!" });
     }
 
-}
+    const posterFiles = req.files?.poster_img || [];
+    const posterImageUrls = [];
+    for (const file of posterFiles) {
+      const upload = await cloudinary.uploader.upload(file.path);
+      posterImageUrls.push(upload.secure_url);
+    }
+
+    // Upload cast images
+    const castFiles = req.files?.cast_img || [];
+    let castArrayParsed = typeof cast === 'string' ? JSON.parse(cast) : cast; // parse if JSON string
+
+    if (castArrayParsed.length > 6) {
+      return res.status(400).json({ message: "Maximum 6 cast members allowed." });
+    }
+
+    if (castArrayParsed.length !== castFiles.length) {
+      return res.status(400).json({ message: "Number of cast images must match number of cast members." });
+    }
+
+    // Map cast with their uploaded photos
+    const castWithPhotos = castArrayParsed.map((c, idx) => ({
+      name: c.name,
+      role: c.role,
+      photo: castFiles[idx] ? cloudinary.uploader.upload(castFiles[idx].path).then(u => u.secure_url) : ""
+    }));
+
+    // Wait for all cast image uploads
+    const finalCast = await Promise.all(
+      castWithPhotos.map(async c => {
+        if (c.photo && typeof c.photo.then === "function") {
+          const url = await c.photo;
+          return { ...c, photo: url };
+        }
+        return c;
+      })
+    );
+
+    // Parse other arrays
+    const languageArray = Array.isArray(language) ? language : language.split(',').map(l => l.trim());
+    const genreArray = Array.isArray(genre) ? genre : genre.split(',').map(g => g.trim());
+    const trailerArray = trailer ? (Array.isArray(trailer) ? trailer : JSON.parse(trailer)) : [];
+
+    // Validate numbers and dates
+    const parsedDuration = Number(duration);
+    if (isNaN(parsedDuration) || parsedDuration <= 0) {
+      return res.status(400).json({ message: "Duration must be a positive number" });
+    }
+
+    const parsedDate = new Date(release_date);
+    const isAdult = adult === 'true' || adult === true;
+
+    // Create new movie document
+    const newMovie = new movie({
+      title,
+      language: languageArray,
+      description,
+      Type,
+      industry,
+      release_date: parsedDate,
+      genre: genreArray,
+      adult: isAdult,
+      duration: parsedDuration,
+      rating,
+      production_house,
+      director,
+      cast: finalCast,
+      poster_img: posterImageUrls,
+      trailer: trailerArray,
+      certification: certification || "",
+      status: status || "upcoming",
+      reviews: [] 
+    });
+
+    const savedMovie = await newMovie.save();
+
+    // Emit updates via socket
+    const updatedStats = await fetchStats();
+    const io = getIO();
+    io.emit("statsUpdated", updatedStats);
+    io.emit("movieAdded", savedMovie);
+
+    return res.status(201).json({ message: "Movie added successfully", movie: savedMovie });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error while adding a new movie", error: error.message });
+  }
+};
+
+
 const getMovieFromLocation = async (req, res) => {
     const { location } = req.query;
 
@@ -175,4 +223,13 @@ const deleteMovie = async (req, res) => {
         return res.status(500).json({ message: "Error in deleting movie", error: err.message })
     }
 }
-module.exports = { getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie }
+const comingSoon=async(req,res)=>{
+    
+    try{
+        const movies=await movie.find({status:"upcoming"})
+        return res.status(200).json({message:"coming Soon movies fetched successfully",movies})
+    }catch(error){
+        return res.json({message:"error in showing coming soon movies",error:Error.message})
+    }
+}
+module.exports = { getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie,comingSoon }
