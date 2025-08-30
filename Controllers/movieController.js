@@ -224,7 +224,7 @@ const deleteMovie = async (req, res) => {
     }
 }
 const comingSoon=async(req,res)=>{
-    
+
     try{
         const movies=await movie.find({status:"upcoming"})
         return res.status(200).json({message:"coming Soon movies fetched successfully",movies})
@@ -232,4 +232,60 @@ const comingSoon=async(req,res)=>{
         return res.json({message:"error in showing coming soon movies",error:Error.message})
     }
 }
-module.exports = { getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie,comingSoon }
+const getUniqueGenres = async (req, res) => {
+  try {
+    const genres = await movie.distinct("genre"); 
+
+    return res.status(200).json({
+      success: true,
+      message: "Unique genres fetched successfully",
+      genres
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching unique genres",
+      error: error.message
+    });
+  }
+}
+const getMoviesByGenre = async (req, res) => {
+  try {
+    const { genre } = req.body;
+
+    if (!genre || genre.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide at least one genre"
+      });
+    }
+
+    const genreArray = Array.isArray(genre) ? genre : [genre];
+    const genreRegexArray = genreArray.map(
+      g => new RegExp(`^${g}$`, "i") 
+    );
+    const movies = await movie.find({
+      genre: { $in: genreRegexArray }
+    });
+    if (!movies.length) {
+      return res.status(404).json({
+        success: false,
+        message: `No movies found for genre(s): ${genreArray.join(", ")}`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Movies fetched successfully",
+      movies
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching movies by genre",
+      error: error.message
+    });
+  }
+};
+
+module.exports = { getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie,comingSoon ,getUniqueGenres,getMoviesByGenre}
