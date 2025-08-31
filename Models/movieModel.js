@@ -26,16 +26,16 @@ const movieSchema = new mongoose.Schema({
   duration: { type: Number, required: true }, 
   rating: { type: Number, required: true },
   Type: { type: String, required: true },
-  industry: { type: String, enum: ["Bollywood", "Hollywood", "Other"], default: "Other" },
+  industry: { type: String, enum: ["Bollywood", "Hollywood","Tollywood", "Other"], default: "Other" },
   production_house: { type: String, required: true },
   director: { type: String, required: true },
   cast: { type: [castSchema], required: true },
   description: { type: String, required: true },
-  poster_img: { type: [String], required: true }, // URLs
+  poster_img: { type: [String], required: true }, 
   trailer: { type: [trailerSchema], required: false },
   certification: { type: String, default: "" },
-  status: { type: String, default: "upcoming" }, // upcoming, released
-  reviews: { type: [reviewSchema], default: [] } // critics reviews
+  status: { type: String, default: "upcoming" }, 
+  reviews: { type: [reviewSchema], default: [] } 
 });
 
 module.exports = mongoose.model("movie", movieSchema);

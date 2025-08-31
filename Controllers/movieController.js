@@ -22,6 +22,7 @@ const addMovie = async (req, res) => {
             Type,
             industry,
             release_date,
+            reviews,
             genre,
             adult,
             duration,
@@ -58,7 +59,6 @@ const addMovie = async (req, res) => {
             posterImageUrls.push(upload.secure_url);
         }
 
-        // Upload cast images
         const castFiles = req.files?.cast_img || [];
         let castArrayParsed = typeof cast === 'string' ? JSON.parse(cast) : cast; // parse if JSON string
 
@@ -70,14 +70,12 @@ const addMovie = async (req, res) => {
             return res.status(400).json({ message: "Number of cast images must match number of cast members." });
         }
 
-        // Map cast with their uploaded photos
         const castWithPhotos = castArrayParsed.map((c, idx) => ({
             name: c.name,
             role: c.role,
             photo: castFiles[idx] ? cloudinary.uploader.upload(castFiles[idx].path).then(u => u.secure_url) : ""
         }));
 
-        // Wait for all cast image uploads
         const finalCast = await Promise.all(
             castWithPhotos.map(async c => {
                 if (c.photo && typeof c.photo.then === "function") {
@@ -88,12 +86,10 @@ const addMovie = async (req, res) => {
             })
         );
 
-        // Parse other arrays
         const languageArray = Array.isArray(language) ? language : language.split(',').map(l => l.trim());
         const genreArray = Array.isArray(genre) ? genre : genre.split(',').map(g => g.trim());
         const trailerArray = trailer ? (Array.isArray(trailer) ? trailer : JSON.parse(trailer)) : [];
-
-        // Validate numbers and dates
+        const reviewsArray = reviews ? (Array.isArray(reviews) ? reviews : JSON.parse(reviews)) : [];
         const parsedDuration = Number(duration);
         if (isNaN(parsedDuration) || parsedDuration <= 0) {
             return res.status(400).json({ message: "Duration must be a positive number" });
@@ -102,7 +98,6 @@ const addMovie = async (req, res) => {
         const parsedDate = new Date(release_date);
         const isAdult = adult === 'true' || adult === true;
 
-        // Create new movie document
         const newMovie = new movie({
             title,
             language: languageArray,
@@ -121,12 +116,11 @@ const addMovie = async (req, res) => {
             trailer: trailerArray,
             certification: certification || "",
             status: status || "upcoming",
-            reviews: []
+            reviews: reviewsArray
         });
 
         const savedMovie = await newMovie.save();
 
-        // Emit updates via socket
         const updatedStats = await fetchStats();
         const io = getIO();
         io.emit("statsUpdated", updatedStats);
@@ -301,7 +295,7 @@ const getMovieByLanguage = async (req, res) => {
         if (!language || language.length == 0) {
             res.status(400).json({ success: false, massage: "Language is required" })
         }
-        const languageArray = Array.isArray(language)? language : [language];
+        const languageArray = Array.isArray(language) ? language : [language];
         const languageRegexArray = languageArray.map(
             l => new RegExp(`^${l}$`, "i")
         );
@@ -331,5 +325,5 @@ const getMovieByLanguage = async (req, res) => {
 }
 module.exports = {
     getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie, comingSoon, getUniqueGenres, getMoviesByGenre,
-    getUniqueLanguages,getMovieByLanguage
+    getUniqueLanguages, getMovieByLanguage
 }
