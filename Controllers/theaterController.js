@@ -1,6 +1,6 @@
 const theater = require("../Models/theaterModel");
-const {getIO}=require("../socket")
-const fetchStats =require("../statsHelper")
+const { getIO } = require("../socket")
+const fetchStats = require("../statsHelper")
 const mongoose = require("mongoose");
 const getTheater = async (req, res) => {
   try {
@@ -18,9 +18,11 @@ const getTheater = async (req, res) => {
 }
 const addTheater = async (req, res) => {
   try {
-    const { theater_id, name, location, address, popular, contact, audis } = req.body;
+    const { theater_id, name, location, address, popular, contact, audis, cancellationAvailable } = req.body;
 
-    if (!theater_id || !name || !location || !address || !popular === undefined || !contact || !Array.isArray(audis) || audis.length === 0) {
+    if (!theater_id || !name || !location || !address || !popular === undefined || !contact || !Array.isArray(audis) || audis.length === 0 ||
+      !Array.isArray(facilities) ||
+      facilities.length === 0) {
       return res.status(400).json({ message: "Fill all the required fields including audis!" });
     }
 
@@ -72,7 +74,9 @@ const addTheater = async (req, res) => {
       address,
       popular,
       contact,
-      audis: formattedAudis
+      audis: formattedAudis,
+      facilities,
+      cancellationAvailable: Boolean(cancellationAvailable)
     });
 
     await newTheater.save();
@@ -356,4 +360,4 @@ const getTheaterById = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
-module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi ,getTheaterById}
+module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi, getTheaterById }
