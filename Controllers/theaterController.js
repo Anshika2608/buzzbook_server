@@ -360,4 +360,127 @@ const getTheaterById = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
-module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi, getTheaterById }
+const getPriceRangesForMovie = async (req, res) => {
+  try {
+    const { movie, city } = req.query;
+
+    if (!movie || !city) {
+      return res.status(400).json({ message: "Both movie and city are required" });
+    }
+    const theaters = await theater.find({
+      "location.city": { $regex: new RegExp(`^${city}$`, "i") },
+      "audis.films_showing.title": { $regex: new RegExp(`^${movie}$`, "i") }
+    }).lean();
+    if (!theaters.length) {
+      return res.status(404).json({
+        success: false,
+        message: `No theaters found showing "${movie}" in "${city}".`
+      });
+    }
+    let prices = [];
+
+    theaters.forEach(theater => {
+      theater.audis.forEach(audi => {
+        audi.films_showing.forEach(film => {
+          if (film.title.toLowerCase() === movie.toLowerCase()) {
+            film.showtimes.forEach(show => {
+              prices.push(...Object.values(show.prices));
+            });
+          }
+        });
+      });
+    });
+
+    const uniquePrices = [...new Set(prices.filter(p => p > 0))].sort((a, b) => a - b);
+
+    const predefinedRanges = [
+      { min: 101, max: 200 },
+      { min: 201, max: 300 },
+      { min: 301, max: 400 },
+      { min: 401, max: 500 },
+    ];
+
+    const availableRanges = predefinedRanges.filter(range =>
+      uniquePrices.some(price => price >= range.min && price <= range.max)
+    ).map(range => `${range.min}-${range.max}`);
+
+    res.status(200).json({
+      success: true,
+      movie,
+      availablePriceRanges: availableRanges
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching price ranges", error: error.message });
+  }
+};
+const filterTheatersByMovieCityAndPrice = async (req, res) => {
+  try {
+    const { movie, city, priceRange } = req.query;
+
+    if (!movie || !city || !priceRange) {
+      return res.status(400).json({ message: "Movie, city, and priceRange are required" });
+    }
+
+    const [minPrice, maxPrice] = priceRange.split("-").map(Number);
+
+    const theaters = await theater.find({
+      "location.city": { $regex: new RegExp(`^${city}$`, "i") },
+      "audis.films_showing.title": { $regex: new RegExp(`^${movie}$`, "i") }
+    }).lean();
+
+    if (!theaters.length) {
+      return res.status(404).json({
+        success: false,
+        message: `No theaters found showing "${movie}" in "${city}".`
+      });
+    }
+    const filteredTheaters = theaters.map(theater => {
+      const matchedAudis = theater.audis.map(audi => {
+        const matchedFilms = audi.films_showing.map(film => {
+          if (film.title.toLowerCase() === movie.toLowerCase()) {
+            const matchedShowtimes = film.showtimes.filter(show => {
+              return Object.values(show.prices).some(
+                price => price >= minPrice && price <= maxPrice
+              );
+            });
+
+            return matchedShowtimes.length > 0
+              ? { ...film, showtimes: matchedShowtimes }
+              : null;
+          }
+          return null;
+        }).filter(film => film !== null);
+
+        return matchedFilms.length > 0
+          ? { ...audi, films_showing: matchedFilms }
+          : null;
+      }).filter(audi => audi !== null);
+
+      return matchedAudis.length > 0
+        ? { ...theater, audis: matchedAudis }
+        : null;
+    }).filter(theater => theater !== null);
+
+    if (filteredTheaters.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No showtimes found in the price range ${priceRange} for "${movie}" in "${city}".`
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: filteredTheaters.length,
+      theaters: filteredTheaters
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error filtering theaters", error: error.message });
+  }
+};
+
+module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi, getTheaterById, 
+  getPriceRangesForMovie,filterTheatersByMovieCityAndPrice }
