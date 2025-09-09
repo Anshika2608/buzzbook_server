@@ -5,7 +5,7 @@ const { updateShowtime,addShowtime ,getShowtime,deleteShowtime} = require("../Co
 const router=express.Router();
 router.patch("/update_showtime",authenticate,updateShowtime);
 router.post("/add_showtime",authenticate, addShowtime);
-router.get("/get_Showtime",authenticate,getShowtime)
+router.get("/get_Showtime",getShowtime)
 router.delete("/delete_showtime",authenticate,deleteShowtime)
 
 module.exports=router;
