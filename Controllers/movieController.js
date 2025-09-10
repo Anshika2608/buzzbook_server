@@ -284,21 +284,52 @@ const getMoviesByGenre = async (req, res) => {
 
 const getMovieByLanguage = async (req, res) => {
     try {
-        const { language } = req.body;
-        if (!language || language.length == 0) {
-            res.status(400).json({ success: false, massage: "Language is required" })
+        const { city, language } = req.body;
+
+        if (!city) {
+            return res.status(400).json({ success: false, message: "City is required" });
         }
+
+        // Step 1: Get theaters in the city
+        const theaters = await Theater.find({ "location.city": { $regex: new RegExp(`^${city}$`, "i") } });
+        if (!theaters.length) {
+            return res.status(404).json({ success: false, message: "No theaters found in this city" });
+        }
+
+        // Step 2: Get all languages from films_showing in theaters
+        const availableLanguages = new Set(
+            theaters.flatMap(theater =>
+                theater.audis.flatMap(audi =>
+                    audi.films_showing.map(film => film.language.toLowerCase())
+                )
+            )
+        );
+
+        // Step 3: Filter input languages based on available languages
         const languageArray = Array.isArray(language) ? language : [language];
-        const languageRegexArray = languageArray.map(
+        const filteredLanguages = languageArray
+            .map(l => l.toLowerCase())
+            .filter(l => availableLanguages.has(l));
+
+        if (!filteredLanguages.length) {
+            return res.status(404).json({
+                success: false,
+                message: `No movies available in the requested language(s) in ${city}`
+            });
+        }
+
+        // Step 4: Fetch movies in the filtered languages
+        const languageRegexArray = filteredLanguages.map(
             l => new RegExp(`^${l}$`, "i")
         );
         const movies = await movie.find({
             language: { $in: languageRegexArray }
         });
+
         if (!movies.length) {
             return res.status(404).json({
                 success: false,
-                message: `No movies found for language: ${languageArray.join(", ")}`
+                message: `No movies found for language(s): ${filteredLanguages.join(", ")}`
             });
         }
 
@@ -307,6 +338,7 @@ const getMovieByLanguage = async (req, res) => {
             message: "Movies fetched successfully",
             movies
         });
+
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -314,8 +346,7 @@ const getMovieByLanguage = async (req, res) => {
             error: error.message
         });
     }
-
-}
+};
 module.exports = {
     getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie, comingSoon, getUniqueGenres, getMoviesByGenre,
      getMovieByLanguage
