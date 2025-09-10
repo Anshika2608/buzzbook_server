@@ -290,13 +290,11 @@ const getMovieByLanguage = async (req, res) => {
             return res.status(400).json({ success: false, message: "City is required" });
         }
 
-        // Step 1: Get theaters in the city
         const theaters = await Theater.find({ "location.city": { $regex: new RegExp(`^${city}$`, "i") } });
         if (!theaters.length) {
             return res.status(404).json({ success: false, message: "No theaters found in this city" });
         }
 
-        // Step 2: Get all languages from films_showing in theaters
         const availableLanguages = new Set(
             theaters.flatMap(theater =>
                 theater.audis.flatMap(audi =>
@@ -305,7 +303,6 @@ const getMovieByLanguage = async (req, res) => {
             )
         );
 
-        // Step 3: Filter input languages based on available languages
         const languageArray = Array.isArray(language) ? language : [language];
         const filteredLanguages = languageArray
             .map(l => l.toLowerCase())
@@ -318,7 +315,6 @@ const getMovieByLanguage = async (req, res) => {
             });
         }
 
-        // Step 4: Fetch movies in the filtered languages
         const languageRegexArray = filteredLanguages.map(
             l => new RegExp(`^${l}$`, "i")
         );
