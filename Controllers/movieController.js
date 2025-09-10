@@ -281,14 +281,7 @@ const getMoviesByGenre = async (req, res) => {
         });
     }
 };
-const getUniqueLanguages = async (req, res) => {
-    try {
-        const languages = await movie.find().distinct("language");
-        return res.status(200).json({ message: "languages fetched successfully", languages })
-    } catch (error) {
-        return res.status(400).json({ message: "error in fetching languages", error: error.message })
-    }
-}
+
 const getMovieByLanguage = async (req, res) => {
     try {
         const { language } = req.body;
@@ -325,5 +318,5 @@ const getMovieByLanguage = async (req, res) => {
 }
 module.exports = {
     getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie, comingSoon, getUniqueGenres, getMoviesByGenre,
-    getUniqueLanguages, getMovieByLanguage
+     getMovieByLanguage
 }

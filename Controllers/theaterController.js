@@ -481,6 +481,46 @@ const filterTheatersByMovieCityAndPrice = async (req, res) => {
     res.status(500).json({ message: "Error filtering theaters", error: error.message });
   }
 };
+const getUniqueLanguagesInCity = async (req, res) => {
+  try {
+    const { city } = req.body;
+    if (!city) {
+      return res.status(400).json({ success: false, message: "City is required" });
+    }
 
-module.exports = { deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi, getTheaterById, 
-  getPriceRangesForMovie,filterTheatersByMovieCityAndPrice }
+    // Step 1: Find theaters in the city
+    const theaters = await theater.find({"location.city": { $regex: new RegExp(`^${city}$`, "i") }});
+
+    if (!theaters.length) {
+      return res.status(404).json({ success: false, message: "No theaters found in this city" });
+    }
+
+    // Step 2: Extract all languages from films_showing
+    const allLanguages = theaters.flatMap(theater =>
+      theater.audis.flatMap(audi =>
+        audi.films_showing.map(film => film.language.toLowerCase()) // normalize to lowercase
+      )
+    );
+
+    // Step 3: Get unique languages (case-insensitive)
+    const uniqueLanguages = [...new Set(allLanguages)];
+
+    return res.status(200).json({
+      success: true,
+      message: `Unique languages in theaters for ${city} fetched successfully`,
+      languages: uniqueLanguages
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching unique languages",
+      error: error.message
+    });
+  }
+};
+
+module.exports = {
+  deleteTheater, getTheater, addTheater, getSeatLayout, getTheaterForMovie, bookSeat, addAudi, addFilmToAudi, getTheaterById,
+  getPriceRangesForMovie, filterTheatersByMovieCityAndPrice, getUniqueLanguagesInCity
+}
