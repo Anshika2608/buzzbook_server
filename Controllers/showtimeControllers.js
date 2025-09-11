@@ -280,7 +280,7 @@ const deleteShowtime = async (req, res) => {
 
 const getShowtimeRangesByCityAndMovie = async (req, res) => {
   try {
-    const { city, movieTitle } = req.body;
+    const { city, movieTitle } = req.query;
 
     if (!city || !movieTitle) {
       return res.status(400).json({ success: false, message: 'City and movieTitle are required' });
@@ -345,7 +345,7 @@ const getShowtimeRangesByCityAndMovie = async (req, res) => {
 };
 const filterTheatersByShowtimeRange = async (req, res) => {
   try {
-    const { city, movieTitle, selectedRange } = req.body;
+    const { city, movieTitle, selectedRange } = req.query;
 
     if (!city || !movieTitle || !selectedRange) {
       return res.status(400).json({ success: false, message: 'City, movieTitle, and selectedRange are required' });
