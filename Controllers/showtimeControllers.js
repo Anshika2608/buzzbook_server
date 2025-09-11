@@ -264,11 +264,7 @@ const deleteShowtime = async (req, res) => {
     if (showIndex === -1) {
       return res.status(404).json({ message: "Showtime not found for this movie!" });
     }
-
-    // Remove the showtime
     film.showtimes.splice(showIndex, 1);
-
-    // If no showtimes left, remove the film entry too
     if (film.showtimes.length === 0) {
       audi.films_showing = audi.films_showing.filter(f => f.title !== film.title);
     }
@@ -282,4 +278,150 @@ const deleteShowtime = async (req, res) => {
   }
 };
 
-module.exports = { updateShowtime ,addShowtime,getShowtime,deleteShowtime};
+const getShowtimeRangesByCityAndMovie = async (req, res) => {
+  try {
+    const { city, movieTitle } = req.body;
+
+    if (!city || !movieTitle) {
+      return res.status(400).json({ success: false, message: 'City and movieTitle are required' });
+    }
+
+    const theaters = await Theater.find({ 'location.city': city});
+
+    const allShowtimes = new Set();
+
+    theaters.forEach(theater => {
+      theater.audis.forEach(audi => {
+        audi.films_showing.forEach(film => {
+          if (film.title.toLowerCase() === movieTitle.toLowerCase()) {
+            film.showtimes.forEach(showtime => {
+              allShowtimes.add(showtime.time);
+            });
+          }
+        });
+      });
+    });
+
+    const showtimeRanges = {
+      morning: [],
+      evening: [],
+      night: []
+    };
+
+    allShowtimes.forEach(timeStr => {
+      const [time, modifier] = timeStr.split(' '); 
+      let [hours, minutes] = time.split(':').map(Number);
+
+      if (modifier === 'PM' && hours !== 12) {
+        hours += 12;
+      } else if (modifier === 'AM' && hours === 12) {
+        hours = 0;
+      }
+
+      const totalMinutes = hours * 60 + minutes;
+
+      if (totalMinutes >= 300 && totalMinutes < 720) {
+        showtimeRanges.morning.push(timeStr);
+      } else if (totalMinutes >= 720 && totalMinutes < 1020) {
+        showtimeRanges.evening.push(timeStr);
+      } else if (totalMinutes >= 1020 && totalMinutes < 1320) {
+        showtimeRanges.night.push(timeStr);
+      }
+    });
+
+    showtimeRanges.morning = [...new Set(showtimeRanges.morning)].sort();
+    showtimeRanges.evening = [...new Set(showtimeRanges.evening)].sort();
+    showtimeRanges.night = [...new Set(showtimeRanges.night)].sort();
+
+    return res.status(200).json({
+      success: true,
+      showtimeRanges
+    });
+
+  } catch (error) {
+    console.error('Error fetching showtimes:', error);
+    return res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+const filterTheatersByShowtimeRange = async (req, res) => {
+  try {
+    const { city, movieTitle, selectedRange } = req.body;
+
+    if (!city || !movieTitle || !selectedRange) {
+      return res.status(400).json({ success: false, message: 'City, movieTitle, and selectedRange are required' });
+    }
+
+    const theaters = await Theater.find({ 'location.city': {$regex:new RegExp(`^${city}$`, "i")} });
+
+    const matchedTheaters = [];
+
+    theaters.forEach(theater => {
+      const matchingAudis = [];
+
+      theater.audis.forEach(audi => {
+        const matchingFilms = audi.films_showing.filter(
+          film => film.title.toLowerCase() === movieTitle.toLowerCase()
+        );
+
+        matchingFilms.forEach(film => {
+          const matchingShowtimes = film.showtimes.filter(showtime => {
+            const [time, modifier] = showtime.time.split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
+
+            if (modifier === 'PM' && hours !== 12) {
+              hours += 12;
+            } else if (modifier === 'AM' && hours === 12) {
+              hours = 0;
+            }
+
+            const totalMinutes = hours * 60 + minutes;
+
+            if (selectedRange === 'morning') {
+              return totalMinutes >= 300 && totalMinutes < 720;
+            } else if (selectedRange === 'evening') {
+              return totalMinutes >= 720 && totalMinutes < 1020;
+            } else if (selectedRange === 'night') {
+              return totalMinutes >= 1020 && totalMinutes < 1320;
+            }
+
+            return false;
+          });
+
+          if (matchingShowtimes.length > 0) {
+            matchingAudis.push({
+              audi_number: audi.audi_number,
+              layout_type: audi.layout_type,
+              films_showing: [{
+                title: film.title,
+                language: film.language,
+                showtimes: matchingShowtimes
+              }]
+            });
+          }
+        });
+      });
+
+      if (matchingAudis.length > 0) {
+        matchedTheaters.push({
+          theater_id: theater.theater_id,
+          name: theater.name,
+          location: theater.location,
+          address: theater.address,
+          contact: theater.contact,
+          audis: matchingAudis,
+          facilities: theater.facilities
+        });
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      theaters: matchedTheaters
+    });
+
+  } catch (error) {
+    console.error('Error filtering theaters:', error);
+    return res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+module.exports = { updateShowtime ,addShowtime,getShowtime,deleteShowtime,getShowtimeRangesByCityAndMovie,filterTheatersByShowtimeRange};
