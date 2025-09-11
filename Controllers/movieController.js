@@ -32,13 +32,14 @@ const addMovie = async (req, res) => {
             cast,
             trailer,
             certification,
-            status
+            status,
+            expiry_date
         } = req.body;
 
         if (
             !title || !language || !description || !Type || !industry || !release_date ||
             !genre || adult === undefined || !duration || !rating ||
-            !production_house || !director || !cast
+            !production_house || !director || !cast || !expiry_date
         ) {
             return res.status(400).json({ message: "Fill all the required fields!" });
         }
@@ -96,6 +97,11 @@ const addMovie = async (req, res) => {
         }
 
         const parsedDate = new Date(release_date);
+        const parsedExpiryDate = new Date(expiry_date)
+        if (isNaN(parsedReleaseDate) || isNaN(parsedExpiryDate)) {
+            return res.status(400).json({ success: false, message: "Invalid date format" });
+        }
+
         const isAdult = adult === 'true' || adult === true;
 
         const newMovie = new movie({
@@ -104,6 +110,7 @@ const addMovie = async (req, res) => {
             description,
             Type,
             industry,
+            expiry_date: parsedExpiryDate,
             release_date: parsedDate,
             genre: genreArray,
             adult: isAdult,
@@ -256,10 +263,10 @@ const getUniqueGenres = async (req, res) => {
         }
         const movies = await movie.find({ title: { $in: movieTitles } })
         const uniqueGenreSet = new Set();
-        movies.forEach(movie=>{
+        movies.forEach(movie => {
             movie.genre.forEach(genre => uniqueGenreSet.add(genre.toLowerCase()));
         })
-        const uniqueGenre=Array.from(uniqueGenreSet)
+        const uniqueGenre = Array.from(uniqueGenreSet)
         return res.status(200).json({
             success: true,
             message: "Unique genres fetched successfully",

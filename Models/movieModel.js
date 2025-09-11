@@ -25,6 +25,7 @@ const movieSchema = new mongoose.Schema({
   adult: { type: Boolean, required: true },
   duration: { type: Number, required: true }, 
   rating: { type: Number, required: true },
+  expiry_date:{type:Date,required:true},
   Type: { type: String, required: true },
   industry: { type: String, enum: ["Bollywood", "Hollywood","Tollywood", "Other"], default: "Other" },
   production_house: { type: String, required: true },
