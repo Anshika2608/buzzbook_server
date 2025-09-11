@@ -60,7 +60,7 @@ const addMovie = async (req, res) => {
         }
 
         const castFiles = req.files?.cast_img || [];
-        let castArrayParsed = typeof cast === 'string' ? JSON.parse(cast) : cast; 
+        let castArrayParsed = typeof cast === 'string' ? JSON.parse(cast) : cast;
 
         if (castArrayParsed.length > 6) {
             return res.status(400).json({ message: "Maximum 6 cast members allowed." });
@@ -228,12 +228,42 @@ const comingSoon = async (req, res) => {
 }
 const getUniqueGenres = async (req, res) => {
     try {
-        const genres = await movie.distinct("genre");
-
+        const { city } = req.body;
+        if (!city) {
+            return res.status(400).json({
+                success: false,
+                message: "Provide the name of city",
+            })
+        }
+        const theaters = await Theater.find({ "location.city": { $regex: new RegExp(`^${city}$`, "i") } })
+        if (!theaters || !theaters.length > 0) {
+            return res.status(400).json({ status: false, message: "Theaters are not present in this location" })
+        }
+        const movieTitlesSet = new Set();
+        theaters.forEach(theater => {
+            theater.audis.forEach(audi => {
+                audi.films_showing.forEach(film => {
+                    movieTitlesSet.add(film.title)
+                })
+            })
+        })
+        const movieTitles = Array.from(movieTitlesSet);
+        if (!movieTitles.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No movies are showing in the theaters of this city"
+            });
+        }
+        const movies = await movie.find({ title: { $in: movieTitles } })
+        const uniqueGenreSet = new Set();
+        movies.forEach(movie=>{
+            movie.genre.forEach(genre => uniqueGenreSet.add(genre.toLowerCase()));
+        })
+        const uniqueGenre=Array.from(uniqueGenreSet)
         return res.status(200).json({
             success: true,
             message: "Unique genres fetched successfully",
-            genres
+            uniqueGenre
         });
     } catch (error) {
         return res.status(500).json({
@@ -305,7 +335,7 @@ const getMovieByLanguage = async (req, res) => {
             theater.audis.forEach(audi => {
                 audi.films_showing.forEach(film => {
                     if (languageRegexArray.some(regex => regex.test(film.language))) {
-                        movieTitlesSet.add(film.title);  
+                        movieTitlesSet.add(film.title);
                     }
                 });
             });
@@ -348,5 +378,5 @@ const getMovieByLanguage = async (req, res) => {
 
 module.exports = {
     getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie, comingSoon, getUniqueGenres, getMoviesByGenre,
-     getMovieByLanguage
+    getMovieByLanguage
 }
