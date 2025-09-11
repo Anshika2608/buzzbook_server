@@ -275,26 +275,54 @@ const getUniqueGenres = async (req, res) => {
 }
 const getMoviesByGenre = async (req, res) => {
     try {
-        const { genre } = req.body;
+        const { genre, city } = req.body;
 
-        if (!genre || genre.length === 0) {
+        if (!genre || !city) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide at least one genre"
+                message: "Provide city and genre both"
+            });
+        }
+        const theaters = await Theater.find({
+            "location.city": { $regex: new RegExp(`^${city}$`, "i") }
+        });
+
+        if (!theaters.length) {
+            return res.status(404).json({
+                success: false,
+                message: `No theaters are present in ${city}`
+            });
+        }
+        const movieTitlesSet = new Set();
+        theaters.forEach(theater => {
+            theater.audis.forEach(audi => {
+                audi.films_showing.forEach(film => {
+                    movieTitlesSet.add(film.title);
+                });
+            });
+        });
+
+        const movieTitles = Array.from(movieTitlesSet);
+
+        if (!movieTitles.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No movies are showing in the theaters of this city"
             });
         }
 
         const genreArray = Array.isArray(genre) ? genre : [genre];
-        const genreRegexArray = genreArray.map(
-            g => new RegExp(`^${g}$`, "i")
-        );
+        const genreRegexArray = genreArray.map(g => new RegExp(`^${g}$`, "i"));
+
         const movies = await movie.find({
+            title: { $in: movieTitles },
             genre: { $in: genreRegexArray }
         });
+
         if (!movies.length) {
             return res.status(404).json({
                 success: false,
-                message: `No movies found for genre(s): ${genreArray.join(", ")}`
+                message: `No movies found for genre(s): ${genreArray.join(", ")} in ${city}`
             });
         }
 
@@ -303,6 +331,7 @@ const getMoviesByGenre = async (req, res) => {
             message: "Movies fetched successfully",
             movies
         });
+
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -311,6 +340,7 @@ const getMoviesByGenre = async (req, res) => {
         });
     }
 };
+
 
 const getMovieByLanguage = async (req, res) => {
     try {
