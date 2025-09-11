@@ -60,7 +60,7 @@ const addMovie = async (req, res) => {
         }
 
         const castFiles = req.files?.cast_img || [];
-        let castArrayParsed = typeof cast === 'string' ? JSON.parse(cast) : cast; // parse if JSON string
+        let castArrayParsed = typeof cast === 'string' ? JSON.parse(cast) : cast; 
 
         if (castArrayParsed.length > 6) {
             return res.status(400).json({ message: "Maximum 6 cast members allowed." });
@@ -291,41 +291,43 @@ const getMovieByLanguage = async (req, res) => {
         }
 
         const theaters = await Theater.find({ "location.city": { $regex: new RegExp(`^${city}$`, "i") } });
+
         if (!theaters.length) {
             return res.status(404).json({ success: false, message: "No theaters found in this city" });
         }
 
-        const availableLanguages = new Set(
-            theaters.flatMap(theater =>
-                theater.audis.flatMap(audi =>
-                    audi.films_showing.map(film => film.language.toLowerCase())
-                )
-            )
-        );
-
         const languageArray = Array.isArray(language) ? language : [language];
-        const filteredLanguages = languageArray
-            .map(l => l.toLowerCase())
-            .filter(l => availableLanguages.has(l));
+        const languageRegexArray = languageArray.map(l => new RegExp(`^${l}$`, "i"));
 
-        if (!filteredLanguages.length) {
+        const movieTitlesSet = new Set();
+
+        theaters.forEach(theater => {
+            theater.audis.forEach(audi => {
+                audi.films_showing.forEach(film => {
+                    if (languageRegexArray.some(regex => regex.test(film.language))) {
+                        movieTitlesSet.add(film.title);  
+                    }
+                });
+            });
+        });
+
+        const movieTitles = Array.from(movieTitlesSet);
+
+        if (!movieTitles.length) {
             return res.status(404).json({
                 success: false,
                 message: `No movies available in the requested language(s) in ${city}`
             });
         }
 
-        const languageRegexArray = filteredLanguages.map(
-            l => new RegExp(`^${l}$`, "i")
-        );
         const movies = await movie.find({
-            language: { $in: languageRegexArray }
+            title: { $in: movieTitles }
         });
 
         if (!movies.length) {
             return res.status(404).json({
                 success: false,
-                message: `No movies found for language(s): ${filteredLanguages.join(", ")}`
+                message: `No movie data found for selected titles`
             });
         }
 
@@ -343,6 +345,7 @@ const getMovieByLanguage = async (req, res) => {
         });
     }
 };
+
 module.exports = {
     getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie, comingSoon, getUniqueGenres, getMoviesByGenre,
      getMovieByLanguage
