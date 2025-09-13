@@ -104,15 +104,16 @@ const getSeatLayout = async (req, res) => {
 
     let foundLayout = null;
 
-    for (const audi of theaterData.audis) {
-      const film = audi.films_showing.find(f =>
+    for (const audi of theaterData.audis || []) {
+      const film = (audi.films_showing || []).find(f =>
+        typeof f.title === 'string' &&
         f.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
       );
 
       if (film) {
-        const matchedShow = film.showtimes.find(s =>
-          s.time.trim() === showtime.trim() &&
-          s.audi_number.trim() === audi.audi_number.trim()
+        const matchedShow = (film.showtimes || []).find(s =>
+          typeof s.time === 'string' &&
+          s.time.trim() === showtime.trim()
         );
 
         if (matchedShow) {
@@ -138,6 +139,7 @@ const getSeatLayout = async (req, res) => {
     });
   }
 };
+
 
 const getTheaterForMovie = async (req, res) => {
   try {
