@@ -3,7 +3,6 @@ const Theater = require("../Models/theaterModel")
 const cloudinary = require("../Middleware/Cloudinary");
 const { getIO } = require("../socket");
 const fetchStats = require("../statsHelper");
- const client = require("../config/redisClient"); 
 
 const getMovie = async (req, res) => {
     try {
