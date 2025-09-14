@@ -5,6 +5,9 @@ const server = http.createServer(app);
 const { initSocket } = require("./socket");
 
 require("./config/config");
+
+const client = require("./config/redisClient"); 
+
 const cookieParser = require("cookie-parser");
 const passport = require("./Middleware/PassPort");
 const cors = require("cors");
@@ -27,7 +30,7 @@ app.use(
     credentials: true,
   })
 );
-
+app.locals.redisClient = client;
 app.use(passport.initialize());
 
 app.use("/auth", require("./Routes/AuthenticationRoute"));

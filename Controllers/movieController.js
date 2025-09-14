@@ -3,6 +3,8 @@ const Theater = require("../Models/theaterModel")
 const cloudinary = require("../Middleware/Cloudinary");
 const { getIO } = require("../socket");
 const fetchStats = require("../statsHelper");
+ const client = require("../config/redisClient"); 
+
 const getMovie = async (req, res) => {
     try {
         const listOfMovies = await movie.find({});
@@ -150,35 +152,49 @@ const getMovieFromLocation = async (req, res) => {
     }
 
     try {
-        console.log("Searching for location:", location);
+            const theaters = await Theater.find(
+            { "location.city": { $regex: `^${location.trim()}$`, $options: "i" }  },
+            { "audis.films_showing.title": 1 }
+        );
 
-        const theaters = await Theater.find({ "location.city": { $regex: new RegExp("^" + location, "i") } });
-        console.log("Matched theaters:", theaters);
-
-        if (theaters.length === 0) {
+        if (!theaters.length) {
             return res.status(404).json({ message: "No theaters found in this location" });
         }
-        const filmTitles = new Set();
-        theaters.forEach(theater => {
-            theater.audis.forEach(audi => {
-                audi.films_showing.forEach(film => {
-                    filmTitles.add(film.title);
-                });
-            });
-        });
-        if (filmTitles.size === 0) {
+
+        const filmTitlesSet = new Set();
+        theaters.forEach(theater =>
+            theater.audis.forEach(audi =>
+                audi.films_showing.forEach(film => filmTitlesSet.add(film.title))
+            )
+        );
+        const filmTitles = Array.from(filmTitlesSet);
+
+        if (!filmTitles.length) {
             return res.status(404).json({ message: "No movies found in this location" });
         }
-        const movies = await movie.find({ title: { $in: Array.from(filmTitles) } });
-        return res.status(200).json({ movies });
+
+        const moviesFromDB = await movie.find(
+            { title: { $in: filmTitles } },
+            { poster_img: 1, title: 1, genre: 1, language: 1, _id: 0 } 
+        );
+
+
+        // 6️⃣ Return response
+        return res.status(200).json({
+            movies: moviesFromDB,
+            source: "db"
+        });
 
     } catch (error) {
+        console.error("Error fetching movies:", error);
         return res.status(500).json({
             message: "Error retrieving the movies based on location",
             error: error.message
         });
     }
 };
+
+
 
 const getMovieDetails = async (req, res) => {
     try {
