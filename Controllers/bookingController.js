@@ -93,7 +93,7 @@ const holdSeats = async (req, res) => {
       snacks: snacksDetails,
       snacks_total,
       parking_slot,
-      parking_price,
+      // parking_price,
       total_price,
       hold_expires_at: holdExpiry
     });
@@ -116,7 +116,7 @@ const holdSeats = async (req, res) => {
       holdExpiresAt: holdExpiry,
       seat_price_total,
       snacks_total,
-      parking_price,
+      // parking_price,
       total_price
     });
 
