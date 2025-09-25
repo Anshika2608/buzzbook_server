@@ -2,6 +2,8 @@ const theater = require("../Models/theaterModel");
 const { getIO } = require("../socket")
 const fetchStats = require("../statsHelper")
 const mongoose = require("mongoose");
+const Booking=require("../Models/BookingModel")
+const TempBooking=require("../Models/TempBookingModel")
 const getTheater = async (req, res) => {
   try {
 
