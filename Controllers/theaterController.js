@@ -111,7 +111,7 @@ const getSeatLayout = async (req, res) => {
   }
 
   try {
-    const theaters = await theater.findOne({ theater_id });
+    const theaters = await theater.findOne({ _id:theater_id });
     if (!theaters) return res.status(404).json({ message: "Theater not found" });
 
     const date = show_date ? new Date(show_date) : new Date();

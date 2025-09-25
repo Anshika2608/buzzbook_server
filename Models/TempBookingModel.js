@@ -3,7 +3,11 @@ const mongoose = require("mongoose");
 const tempBookingSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, required: true }, // logged in user
     userEmail: { type: String, required: true },
-    theater_id: { type: String, required: true },
+       theater_id: {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "Theater",
+         required: true,
+       },
     audi_number: { type: String, required: true },
     movie_title: { type: String, required: true },
     movie_language: { type: String, required: true },

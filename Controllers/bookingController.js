@@ -13,7 +13,7 @@ const holdSeats = async (req, res) => {
   }
 
   try {
-    const theater = await Theater.findOne({ theater_id });
+    const theater = await Theater.findOne({ _id:theater_id });
     if (!theater) return res.status(404).json({ message: "Theater not found" });
 
     const date = show_date ? new Date(show_date) : new Date();
