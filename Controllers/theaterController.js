@@ -102,54 +102,78 @@ const addTheater = async (req, res) => {
 };
 
 const getSeatLayout = async (req, res) => {
-  const { theater_id, movie_title, showtime } = req.query;
+  const { theater_id, movie_title, showtime, show_date } = req.query;
 
   if (!theater_id || !movie_title || !showtime) {
-    return res.status(400).json({ message: "Please provide theater_id, movie_title, and showtime." });
+    return res.status(400).json({ message: "Theater ID, movie title, and showtime are required" });
   }
 
   try {
-    const theaterData = await theater.findOne({ theater_id });
-    if (!theaterData) {
-      return res.status(404).json({ message: "Theater not found." });
-    }
+    const theaters = await theater.findOne({ theater_id });
+    if (!theaters) return res.status(404).json({ message: "Theater not found" });
 
-    let foundLayout = null;
-    for (const audi of theaterData.audis || []) {
-      const film = (audi.films_showing || []).find(f =>
-        typeof f.title === 'string' &&
-        f.title.toLowerCase().trim() === movie_title.toLowerCase().trim()
-      );
+    const date = show_date ? new Date(show_date) : new Date();
+    const formattedDate = date.toISOString().split("T")[0];
 
-      if (film) {
-        const matchedShow = (film.showtimes || []).find(s =>
-          typeof s.time === 'string' &&
-          s.time.trim() === showtime.trim()
-        );
+    const audi = theaters.audis.find(audi =>
+      audi.films_showing.some(film =>
+        film.title.toLowerCase() === movie_title.toLowerCase() &&
+        film.showtimes.some(s => s.time === showtime)
+      )
+    );
 
-        if (matchedShow) {
-          foundLayout = matchedShow.seating_layout || [];
-          break;
-        }
+    if (!audi) return res.status(404).json({ message: "Movie not found in any audi at this showtime" });
+
+    // Find the specific film and showtime
+    const film = audi.films_showing.find(f => f.title.toLowerCase() === movie_title.toLowerCase());
+    const show = film.showtimes.find(s => s.time === showtime);
+
+    // Clone template layout
+    const dynamicLayout = JSON.parse(JSON.stringify(show.seating_layout));
+
+    const now = new Date();
+
+    // Mark booked seats for this date
+    const bookedSeats = await Booking.find({
+      theater_id,
+      audi_number: audi.audi_number,
+      movie_title,
+      showtime,
+      show_date: formattedDate
+    }).select("seats -_id");
+    const bookedFlat = bookedSeats.flatMap(b => b.seats);
+
+    const heldSeats = await TempBooking.find({
+      theater_id,
+      audi_number: audi.audi_number,
+      movie_title,
+      showtime,
+      show_date: formattedDate,
+      hold_expires_at: { $gt: now }
+    }).select("seats -_id");
+    const heldFlat = heldSeats.flatMap(h => h.seats);
+
+   
+    for (let row of dynamicLayout) {
+      for (let seat of row) {
+        if (bookedFlat.includes(seat.seat_number)) seat.is_booked = true;
+        if (heldFlat.includes(seat.seat_number)) seat.is_held = true;
       }
     }
 
-    if (!foundLayout || foundLayout.length === 0) {
-      return res.status(404).json({ message: "Showtime or movie not found in any audi." });
-    }
-
     return res.status(200).json({
-      message: "Seat layout fetched successfully.",
-      layout: foundLayout
+      message: "Seat layout fetched successfully",
+      seating_layout: dynamicLayout,
+      audi_number: audi.audi_number, 
+      show_date: formattedDate
     });
 
   } catch (error) {
-    return res.status(500).json({
-      message: "Error fetching seat layout",
-      error: error.message
-    });
+    console.error("Error fetching seat layout:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
 
 
 
