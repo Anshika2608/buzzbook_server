@@ -16,15 +16,13 @@ const generateSeatsMiddleware = (req, res, next) => {
         sofaRows = 0,
         regularRows = 0,
         reclinerRows = 0,
-        emptySpaces = []
+        emptySpaces = [],
+        films_showing = []
       } = audi;
 
       if (!rows || !seatsPerRow || !layout_type) {
         throw new Error(`Missing basic layout data in audi ${index + 1}`);
       }
-
-      let seat_types = [];
-      let requiredTypes = [];
 
       // Map of layout_type => expected seat types
       const layoutConfig = {
@@ -42,31 +40,42 @@ const generateSeatsMiddleware = (req, res, next) => {
         throw new Error(`Invalid layout type '${layout_type}' in audi ${index + 1}`);
       }
 
-      // Validate presence and sum of expected row keys
+      // Build row-to-seatType mapping
+      let rowTypeMapping = [];
       let totalRowSum = 0;
+
       for (const rowKey of expectedRowKeys) {
-        const value = eval(rowKey); // e.g., vipRows
-        if (!value || typeof value !== "number" || value < 0) {
+        const value = audi[rowKey] ?? 0;
+        if (typeof value !== "number" || value < 0) {
           throw new Error(`Missing or invalid '${rowKey}' for layout '${layout_type}' in audi ${index + 1}`);
         }
         totalRowSum += value;
-
-        // Collect seat type name from key (e.g., "vipRows" => "VIP")
-        requiredTypes.push(rowKey.replace("Rows", ""));
-        seat_types.push(...Array(value).fill(rowKey.replace("Rows", "").toUpperCase()));
+        rowTypeMapping.push(...Array(value).fill(rowKey.replace("Rows", "").toUpperCase()));
       }
 
       if (totalRowSum !== rows) {
         throw new Error(`Sum of seat type rows (${totalRowSum}) must match total rows (${rows}) in audi ${index + 1}`);
       }
 
-      // Generate seat layout grid
-      let layout = [];
-      generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout);
+      // Generate seating layout for each showtime of each film
+      const updatedFilms = films_showing.map(film => {
+        const updatedShowtimes = film.showtimes.map(showtime => {
+          const seating_layout = generateLayout(rows, seatsPerRow, rowTypeMapping, emptySpaces);
+          return {
+            ...showtime,
+            seating_layout
+          };
+        });
+
+        return {
+          ...film,
+          showtimes: updatedShowtimes
+        };
+      });
 
       return {
         ...audi,
-        seating_layout: layout,
+        films_showing: updatedFilms,
         seating_capacity: rows * seatsPerRow
       };
     });
@@ -77,39 +86,31 @@ const generateSeatsMiddleware = (req, res, next) => {
   }
 };
 
+// Generates a seating layout grid based on row types and empty spaces
+function generateLayout(rows, seatsPerRow, rowTypeMapping, emptySpaces) {
+  const layout = [];
 
-
-function generateLayout(rows, seatsPerRow, seat_types, emptySpaces, layout) {
   for (let row = 0; row < rows; row++) {
-    let rowLayout = [];
-    let rowLetter = String.fromCharCode(65 + row);
+    const rowLayout = [];
+    const rowLetter = String.fromCharCode(65 + row);
+    const seatType = rowTypeMapping[row];
 
     for (let seat = 1; seat <= seatsPerRow; seat++) {
       const seatNumber = `${rowLetter}${seat}`;
-      const seatType = seat_types[row];
 
-      if (emptySpaces.includes(`${row + 1}-${seat}`)) {
-        rowLayout.push({
-          seat_number: seatNumber,
-          type: "Empty",
-          is_booked: false,
-          is_held: false,
-          hold_expires_at: null
-        });
-      } else {
-        rowLayout.push({
-          seat_number: seatNumber,
-          type: seatType,
-          is_booked: false,
-          is_held: false,
-          hold_expires_at: null
-        });
-      }
+      rowLayout.push({
+        seat_number: seatNumber,
+        type: emptySpaces.includes(`${row + 1}-${seat}`) ? "Empty" : seatType,
+        is_booked: false,
+        is_held: false,
+        hold_expires_at: null
+      });
     }
 
     layout.push(rowLayout);
   }
-}
 
+  return layout;
+}
 
 module.exports = generateSeatsMiddleware;

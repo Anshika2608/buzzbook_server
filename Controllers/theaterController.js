@@ -18,7 +18,7 @@ const getTheater = async (req, res) => {
 }
 const addTheater = async (req, res) => {
   try {
-    const { theater_id, name, location, address, popular, contact, audis, cancellationAvailable } = req.body;
+    const { theater_id, name, location, address, popular, contact, audis, cancellationAvailable,facilities } = req.body;
 
     if (!theater_id || !name || !location || !address || !popular === undefined || !contact || !Array.isArray(audis) || audis.length === 0 ||
       !Array.isArray(facilities) ||
@@ -32,9 +32,21 @@ const addTheater = async (req, res) => {
     }
 
     const formattedAudis = audis.map(audi => {
-      const { audi_number, layout_type, rows, seatsPerRow, seating_layout, vipRows, premiumRows, sofaRows, regularRows, reclinerRows, emptySpaces, films_showing } = audi;
+      const {
+        audi_number,
+        layout_type,
+        rows,
+        seatsPerRow,
+        vipRows = 0,
+        premiumRows = 0,
+        sofaRows = 0,
+        regularRows = 0,
+        reclinerRows = 0,
+        emptySpaces = [],
+        films_showing
+      } = audi;
 
-      if (!audi_number || !layout_type || !rows || !seatsPerRow || !Array.isArray(seating_layout) || seating_layout.length === 0) {
+      if (!audi_number || !layout_type || !rows || !seatsPerRow || !Array.isArray(films_showing) || films_showing.length === 0) {
         throw new Error(`Invalid data for audi: ${audi_number}`);
       }
 
@@ -45,7 +57,8 @@ const addTheater = async (req, res) => {
         language: film.language,
         showtimes: film.showtimes.map(show => ({
           time: show.time,
-          prices: show.prices
+          prices: show.prices,
+          seating_layout:show.seating_layout
         }))
       }));
 
@@ -56,7 +69,6 @@ const addTheater = async (req, res) => {
         rows,
         seatsPerRow,
         seating_capacity,
-        seating_layout,
         vipRows,
         premiumRows,
         sofaRows,
@@ -103,7 +115,6 @@ const getSeatLayout = async (req, res) => {
     }
 
     let foundLayout = null;
-
     for (const audi of theaterData.audis || []) {
       const film = (audi.films_showing || []).find(f =>
         typeof f.title === 'string' &&
@@ -117,13 +128,13 @@ const getSeatLayout = async (req, res) => {
         );
 
         if (matchedShow) {
-          foundLayout = audi.seating_layout;
+          foundLayout = matchedShow.seating_layout || [];
           break;
         }
       }
     }
 
-    if (!foundLayout) {
+    if (!foundLayout || foundLayout.length === 0) {
       return res.status(404).json({ message: "Showtime or movie not found in any audi." });
     }
 
@@ -139,6 +150,7 @@ const getSeatLayout = async (req, res) => {
     });
   }
 };
+
 
 
 const getTheaterForMovie = async (req, res) => {

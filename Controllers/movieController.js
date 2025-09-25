@@ -178,7 +178,7 @@ const getMovieFromLocation = async (req, res) => {
         );
 
 
-        // 6️⃣ Return response
+       
         return res.status(200).json({
             movies: moviesFromDB,
             source: "db"

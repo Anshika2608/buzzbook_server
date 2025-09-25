@@ -29,7 +29,6 @@ app.use(
     credentials: true,
   })
 );
-// app.locals.redisClient = client;
 app.use(passport.initialize());
 
 app.use("/auth", require("./Routes/AuthenticationRoute"));

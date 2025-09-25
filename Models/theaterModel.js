@@ -16,7 +16,8 @@ const showtimeSchema = new mongoose.Schema({
     Regular: { type: Number ,default:0},
     Sofa: { type: Number,default:0 },
     Recliner: { type: Number ,default:0}
-  }
+  },
+  seating_layout: [[seatSchema]],
 });
 
 
@@ -34,7 +35,7 @@ const audiSchema = new mongoose.Schema({
   rows: { type: Number, required: true },
   seatsPerRow: { type: Number, required: true },
   seating_capacity: { type: Number, required: true },
-  seating_layout: [[seatSchema]],
+  
   vipRows: { type: Number, default: 0 },
   premiumRows: { type: Number, default: 0 },
   sofaRows: { type: Number, default: 0 },
