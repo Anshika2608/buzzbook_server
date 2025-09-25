@@ -1,12 +1,12 @@
 const Theater = require("../Models/theaterModel");
 const { getIO } = require("../socket");
 const Booking = require("../Models/BookingModel")
-const TempBooking=require("../Models/TempBookingModel")
-const Snack=require("../Models/snackModel")
+const TempBooking = require("../Models/TempBookingModel")
+const Snack = require("../Models/snackModel")
 const holdSeats = async (req, res) => {
   const { theater_id, movie_title, showtime, show_date, seats, snacks = [], parking_slot = null } = req.body;
   const userId = req.userId;
-   const userEmail = req.rootUser.email;
+  const userEmail = req.rootUser.email;
 
   if (!theater_id || !movie_title || !showtime || !Array.isArray(seats) || seats.length === 0) {
     return res.status(400).json({ message: "Theater, movie, showtime and seats are required" });
@@ -32,7 +32,7 @@ const holdSeats = async (req, res) => {
 
     const now = new Date();
 
-    
+
     const bookedSeats = await TempBooking.find({
       theater_id,
       audi_number: audi.audi_number,
@@ -49,11 +49,24 @@ const holdSeats = async (req, res) => {
 
     let seat_price_total = 0;
     for (let seat of seats) {
+      let found = false;
       for (let row of show.seating_layout) {
         const seatObj = row.find(s => s.seat_number === seat);
-        if (seatObj) seat_price_total += show.prices[seatObj.type] || 0;
+        if (seatObj) {
+          // normalize keys
+          const prices = Object.fromEntries(
+            Object.entries(show.prices).map(([k, v]) => [k.toUpperCase(), v])
+          );
+          seat_price_total += prices[seatObj.type.toUpperCase()] || 0;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        console.warn(`Seat ${seat} not found in layout`);
       }
     }
+
 
     let snacks_total = 0;
     const snacksDetails = [];
@@ -76,7 +89,7 @@ const holdSeats = async (req, res) => {
     // }
 
     // const total_price = seat_price_total + snacks_total + parking_price;
- const total_price = seat_price_total + snacks_total ;
+    const total_price = seat_price_total + snacks_total;
     const holdExpiry = new Date(now.getTime() + 7 * 60 * 1000);
 
     const tempBooking = await TempBooking.create({
