@@ -1,8 +1,12 @@
 const mongoose = require("mongoose");
 
 const snackSchema = new mongoose.Schema({
+  theater: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Theater", 
+    required: true,
+  },
     name: { type: String, required: true },
-    price: { type: Number, required: true },
     snack_img: {
         type: Array,
         required: false
@@ -17,8 +21,8 @@ const snackSchema = new mongoose.Schema({
     ingredients: { type: [String], default: [] },
       quantity_options: [
     {
-      unit: { type: String, required: true }, // e.g. Small, Medium, Large
-      price: { type: Number, required: true } // price for that unit
+      unit: { type: String, required: true }, 
+      price: { type: Number, required: true } 
     }
   ],
     rating: { type: Number, min: 0, max: 5 }

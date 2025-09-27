@@ -1,24 +1,22 @@
 const Snack = require("../Models/snackModel");
 const { getIO } = require("../socket");
-const TempBooking=require("../Models/TempBookingModel")
+const TempBooking = require("../Models/TempBookingModel")
 const cloudinary = require("../Middleware/Cloudinary");
-
-const getAllSnacks = async (req, res) => {
+const Theater=require("../Models/theaterModel")
+const getSnacksByTheater = async (req, res) => {
     try {
-        const snacks = await Snack.find();
-        return res.status(200).json(snacks);
+        const { theaterId } = req.params;
+        const snacks = await Snack.find({ theater: theaterId });
+        return res.status(200).json({message:"Snacks fetched successfully",snacks});
     } catch (error) {
         console.error("Error fetching snacks:", error);
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
-}
-
-
-
+};
 const addSnack = async (req, res) => {
     const {
+        theaterId,
         name,
-        price,
         description,
         available,
         category,
@@ -28,35 +26,30 @@ const addSnack = async (req, res) => {
     } = req.body;
 
     const snack_img = req.files?.['snack_img'] || [];
+    if (!theaterId) {
+        return res.status(400).json({ message: "Theater ID is required." });
+    }
 
-    // === Basic Required Field Validation ===
-    if (!name || !category || !quantity_options || !price) {
+    const theaterExists = await Theater.findById(theaterId);
+    if (!theaterExists) {
+        return res.status(404).json({ message: "Theater not found." });
+    }
+
+    if (!name || !category || !quantity_options ) {
         return res.status(400).json({
-            message: "Fields 'name', 'price', 'category', and 'quantity_options' are required.",
+            message: "Fields 'name','category', and 'quantity_options' are required.",
         });
     }
-
-    // === Validate price ===
-    const parsedPrice = parseFloat(price);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-        return res.status(400).json({ message: "Invalid price. Must be a non-negative number." });
-    }
-
-    // === Validate rating (optional) ===
     const parsedRating = rating ? parseFloat(rating) : 0;
     if (parsedRating < 0 || parsedRating > 5) {
         return res.status(400).json({ message: "Rating must be between 0 and 5." });
     }
-
-    // === Validate category enum ===
     const validCategories = ["Veg", "Non-Veg"];
     if (!validCategories.includes(category)) {
         return res.status(400).json({
             message: `Invalid category. Must be one of: ${validCategories.join(", ")}`,
         });
     }
-
-    // === Parse quantity_options ===
     let parsedQuantityOptions = [];
     try {
         parsedQuantityOptions =
@@ -81,22 +74,18 @@ const addSnack = async (req, res) => {
             message: "Invalid format for quantity_options. Must be a JSON array.",
         });
     }
-
-    // === Parse ingredients ===
     const parsedIngredients =
         typeof ingredients === "string"
             ? ingredients.split(",").map((i) => i.trim())
             : ingredients || [];
 
-    // === Check for duplicate snack ===
-    const existingSnack = await Snack.findOne({ name: name.trim(), category });
+    const existingSnack = await Snack.findOne({ name: name.trim(), category,theater: theaterId });
     if (existingSnack) {
         return res.status(409).json({
             message: "A snack with this name and category already exists.",
         });
     }
 
-    // === Upload snack images ===
     const snackImageUrls = [];
     for (const file of snack_img) {
         try {
@@ -114,8 +103,8 @@ const addSnack = async (req, res) => {
 
     try {
         const newSnack = new Snack({
+            theater:theaterId,
             name: name.trim(),
-            price: parsedPrice,
             snack_img: snackImageUrls,
             description,
             available: available === "true" || available === true,
@@ -210,5 +199,5 @@ const updateSnack = async (req, res) => {
     }
 }
 module.exports = {
-    getAllSnacks, addSnack, deleteSnack, updateSnack
+    getSnacksByTheater, addSnack, deleteSnack, updateSnack
 };
