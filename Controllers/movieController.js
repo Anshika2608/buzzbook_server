@@ -174,7 +174,7 @@ const getMovieFromLocation = async (req, res) => {
 
         const moviesFromDB = await movie.find(
             { title: { $in: filmTitles } },
-            { poster_img: 1, title: 1, genre: 1, language: 1, _id: 0 } 
+            { poster_img: 1, title: 1, genre: 1, language: 1, _id: 1 } 
         );
 
 
