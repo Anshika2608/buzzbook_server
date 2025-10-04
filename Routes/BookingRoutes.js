@@ -5,6 +5,6 @@ const authenticate  = require("../Middleware/Authenticate");
 
 
 router.post("/hold-seats",authenticate, holdSeats);
-router.post("/book-seats", confirmBooking);
+router.post("/book-seats",authenticate, confirmBooking);
 
 module.exports = router;

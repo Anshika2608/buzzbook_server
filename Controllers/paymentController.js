@@ -1,45 +1,56 @@
-// const Razorpay = require("razorpay");
-// const TempBooking = require("../Models/TempBookingModel");
-// const Booking = require("../Models/BookingModel"); // your confirmed bookings model
+const razorpay = require("../config/razorpay");
+const crypto = require("crypto");
+const {confirmBooking} = require("./bookingController")
+const createOrder = async (req, res) => {
+  try {
+    const { amount, currency = "INR", receipt } = req.body;
 
-// const razorpay = new Razorpay({
-//   key_id: process.env.RAZORPAY_KEY_ID,
-//   key_secret: process.env.RAZORPAY_KEY_SECRET,
-// });
+    const options = {
+      amount: amount * 100, 
+      currency,
+      receipt: receipt || "receipt_order_" + Math.floor(Math.random() * 10000),
+    };
 
-// const createOrder = async (req, res) => {
-//   const { tempBookingId } = req.body;
-//   if (!tempBookingId) return res.status(400).json({ message: "tempBookingId is required" });
+    const order = await razorpay.orders.create(options);
 
-//   try {
-//     const tempBooking = await TempBooking.findById(tempBookingId);
-//     if (!tempBooking) return res.status(404).json({ message: "TempBooking not found" });
+    return res.status(200).json({
+      success: true,
+      order_id: order.id,
+      currency: order.currency,
+      amount: order.amount,
+      key: process.env.RAZORPAY_KEY_ID, 
+    });
+  } catch (error) {
+    console.error("Razorpay Create Order Error:", error);
+    return res.status(500).json({ success: false, message: "Unable to create order" });
+  }
+};
 
-//     // Check if hold expired
-//     if (new Date() > tempBooking.hold_expires_at) {
-//       return res.status(400).json({ message: "Hold expired. Please select seats again." });
-//     }
+const verifyPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingDetails } = req.body;
 
-//     const options = {
-//       amount: tempBooking.total_price * 100, // in paise
-//       currency: "INR",
-//       receipt: tempBooking._id.toString(),
-//       payment_capture: 1
-//     };
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
 
-//     const order = await razorpay.orders.create(options);
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
 
-//     return res.status(200).json({
-//       message: "Razorpay order created",
-//       orderId: order.id,
-//       amount: order.amount,
-//       currency: order.currency,
-//       key: process.env.RAZORPAY_KEY_ID
-//     });
-//   } catch (error) {
-//     console.error("Error creating Razorpay order:", error);
-//     return res.status(500).json({ message: "Internal Server Error", error: error.message });
-//   }
-// };
+    if (expectedSignature === razorpay_signature) {
 
-// module.exports = { createOrder };
+
+      req.body = bookingDetails; 
+      await confirmBooking(req, res);
+      
+      return;
+
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid signature" });
+    }
+  } catch (error) {
+    console.error("Razorpay Verify Error:", error);
+    return res.status(500).json({ success: false, message: "Verification failed" });
+  }
+};
+module.exports={createOrder,verifyPayment};

@@ -139,16 +139,6 @@ const holdSeats = async (req, res) => {
   }
 };
 
-async function verifyPayment(paymentId) {
-
-  if (paymentId && paymentId.startsWith("pay_")) {
-    return true;
-  }
-  return false;
-}
-
-
-
 
 const confirmBooking = async (req, res) => {
   const {
@@ -167,8 +157,8 @@ const confirmBooking = async (req, res) => {
     total_price,
   } = req.body;
 
-  // const user_id = req.userId;       // ✅ from middleware
-  // const user_email = req.rootUser.email; // ✅ also available
+   const user_id = req.userId;       
+   const user_email = req.rootUser.email; 
 
   if (
     !theater_id || !audi_number || !movie_title || !movie_language ||
@@ -179,12 +169,6 @@ const confirmBooking = async (req, res) => {
   }
 
   try {
-
-    const isPaymentValid = await verifyPayment(paymentId);
-    if (!isPaymentValid) {
-      return res.status(400).json({ message: "Payment verification failed." });
-    }
-
 
     const theater = await Theater.findOne({ theater_id });
     if (!theater) return res.status(404).json({ message: "Theater not found" });
@@ -226,7 +210,7 @@ const confirmBooking = async (req, res) => {
     await theater.save();
 
     const newBooking = new Booking({
-      // user_id,
+      user_id,
       theater_id: theater._id,
       theater_name: theater.name,
       audi_number,
@@ -246,7 +230,6 @@ const confirmBooking = async (req, res) => {
 
     await newBooking.save();
 
-    // 8️⃣ emit socket event
     const io = getIO();
     io.emit("seatsBooked", {
       theaterId: theater.theater_id,
@@ -259,7 +242,7 @@ const confirmBooking = async (req, res) => {
     return res.status(200).json({
       message: "Booking confirmed successfully",
       booking: newBooking,
-      // user_email, // ✅ can also return email for frontend display
+      user_email, 
     });
 
   } catch (error) {
