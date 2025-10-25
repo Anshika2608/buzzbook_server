@@ -11,10 +11,20 @@ const trailerSchema = new mongoose.Schema({
   url: { type: String, required: true }
 });
 
+const replySchema = new mongoose.Schema({
+  user_name: { type: String, required: true },
+  reply: { type: String, required: true },
+  created_at: { type: Date, default: Date.now }
+});
+
 const reviewSchema = new mongoose.Schema({
   critic_name: { type: String, required: true },
-  rating: { type: Number, required: true }, 
-  review: { type: String, required: true }
+  rating: { type: Number, required: true },
+  review: { type: String, required: true },
+  helpful_count: { type: Number, default: 0 }, // total helpful/like count
+  helpful_users: { type: [String], default: [] }, // store user IDs or names who marked helpful
+  replies: { type: [replySchema], default: [] }, // nested replies
+  created_at: { type: Date, default: Date.now }
 });
 
 const movieSchema = new mongoose.Schema({
