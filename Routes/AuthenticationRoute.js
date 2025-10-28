@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require("passport")
 require("dotenv").config();
 const authenticate = require("../Middleware/Authenticate")
-const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword } = require("../Controllers/authenticationController")
+const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword, refreshAccessToken, logoutUser } = require("../Controllers/authenticationController")
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/validUser", authenticate, (req, res) => {
@@ -21,30 +21,28 @@ router.get("/google",
 );
 
 router.get("/google/callback", (req, res, next) => {
-  passport.authenticate("google", { session: false }, (err, userWithToken) => {
-    if (err || !userWithToken || !userWithToken.token) {
+  passport.authenticate("google", { session: false }, (err, data) => {
+    if (err || !data || !data.accessJWT) {
       return res.redirect("http://localhost:3000/login?error=google_login_failed");
     }
 
-    const { token } = userWithToken;
-    res.cookie("authToken", token, {
+    const { accessJWT, refreshJWT } = data;
+
+    // ✅ Store refresh token in secure cookie
+    res.cookie("refreshToken", refreshJWT, {
       httpOnly: true,
       secure: true,
       sameSite: "None",
-      expires: new Date(Date.now() + 6 * 60 * 60 * 1000),
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.redirect("http://localhost:3000/dashboard");
+    // ✅ Redirect and send access token to frontend
+    res.redirect(`http://localhost:3000/dashboard?accessToken=${accessJWT}`);
   })(req, res, next);
 });
-router.get("/logout", (req, res) => {
-  res.clearCookie("authToken", {
-    httpOnly: true,
-    sameSite: "None",
-    secure: true,
-  });
-  res.status(200).json({ message: "Logged out" });
-});
+
+router.post("/logout",logoutUser)
 
 
 
@@ -58,4 +56,5 @@ router.post("/sendpasswordLink", sendemaillink)
 
 router.get("/ForgotPassword/:id/:token", verifyForgot)
 router.post("/:id/:token", changePassword)
+router.post("/refresh-token",refreshAccessToken)
 module.exports = router;

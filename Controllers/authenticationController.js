@@ -65,66 +65,66 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
+  const { email, password, recaptchaToken } = req.body;
+  if (!email || !password || !recaptchaToken)
+    return res.status(400).json({ message: "Fill all the required fields!" });
 
-    const { email, password, recaptchaToken } = req.body;
-    if (!email || !password || !recaptchaToken) {
-        return res.status(400).json({ message: "Fill all the required fields!" });
-    }
-    try {
-        console.log("Received reCAPTCHA Token:", recaptchaToken);
-        if (recaptchaToken !== "test-token") {
-            const response = await axios.post(
-                `https://www.google.com/recaptcha/api/siteverify`,
-                null,
-                {
-                    params: {
-                        secret: process.env.RECAPTCHA_SECRET,
-                        response: recaptchaToken,
-                    },
-                }
-            );
-
-            if (!response.data.success || response.data.score < 0.5) {
-                return res.status(400).json({
-                    message: "reCAPTCHA validation failed or suspicious activity detected!",
-                    score: response.data.score,
-                });
-            }
+  try {
+    // ✅ reCAPTCHA verification (keep your existing logic)
+    if (recaptchaToken !== "test-token") {
+      const response = await axios.post(
+        "https://www.google.com/recaptcha/api/siteverify",
+        null,
+        {
+          params: {
+            secret: process.env.RECAPTCHA_SECRET,
+            response: recaptchaToken,
+          },
         }
-
-
-        const preUser = await users.findOne({ email: email });
-        if (!preUser) {
-            return res.status(400).json({ message: "User does not exist!" });
-        } else {
-            const isMatch = await bcrypt.compare(password, preUser.password);
-            if (!isMatch) {
-                return res.status(400).json({ message: "Invalid details!" });
-            } else {
-                const token = await preUser.generateAuthToken();
-                res.cookie("authToken", token, {
-                    httpOnly: true,
-                    secure: true, // true if using HTTPS
-                    sameSite: "None", 
-                    path: "/",       
-                    expires: new Date(Date.now() + 6 * 60 * 60 * 1000),
-                });
-
-
-                return res.status(201).json({
-                    message: "User logged in successfully",
-                    user: {
-                        name: preUser.name,
-                        email: preUser.email,
-                        image: preUser.image || null,
-                    },
-                });
-            }
-        }
-    } catch (error) {
-        res.status(500).json({ message: "Error while logging in a user", error: error.message });
+      );
+      if (!response.data.success || response.data.score < 0.5)
+        return res.status(400).json({ message: "reCAPTCHA failed" });
     }
+
+    const user = await users.findOne({ email });
+    if (!user) return res.status(400).json({ message: "User does not exist!" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials!" });
+
+    // ✅ Generate new tokens
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    // ✅ Save refresh token in DB (rotation)
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // ✅ Store refresh token securely in cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // ✅ Send access token to frontend
+    res.status(200).json({
+      message: "Login successful",
+      accessToken,
+      user: {
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Login error", error: error.message });
+  }
 };
+
 const validUser = async (req, res) => {
     try {
         const preUserOne = await users.findOne({ _id: req.userId });
@@ -222,5 +222,61 @@ const changePassword = async (req, res) => {
         res.status(401).json({ status: 401, error })
     }
 }
+const refreshAccessToken = async (req, res) => {
+  const token = req.cookies.refreshToken;
+  if (!token) return res.status(401).json({ message: "No refresh token" });
 
-module.exports = { registerUser, loginUser, validUser, googleLogin, sendemaillink, verifyForgot, changePassword }
+  try {
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    const user = await users.findById(decoded.id);
+
+    if (!user || user.refreshToken !== token) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    // ✅ Rotate refresh token
+    const newRefreshToken = user.generateRefreshToken();
+    const newAccessToken = user.generateAccessToken();
+
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    return res.status(403).json({ message: "Invalid or expired token" });
+  }
+};
+const logoutUser = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken)
+      return res.status(204).json({ message: "No token to clear" });
+
+    const user = await users.findOne({ refreshToken });
+    if (user) {
+      user.refreshToken = null;
+      await user.save();
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Logout failed", error: err.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, validUser, googleLogin, sendemaillink, verifyForgot, changePassword,refreshAccessToken ,logoutUser}

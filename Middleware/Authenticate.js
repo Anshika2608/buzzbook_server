@@ -1,17 +1,24 @@
 const jwt = require("jsonwebtoken");
 const NormalUser = require("../Models/userModel");
 const GoogleUser = require("../Models/googleUser");
-const keysecret = process.env.SECRET_KEY;
+
+const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 const authenticate = async (req, res, next) => {
   try {
-    const token = req.cookies.authToken;
+    // 🔹 Get token from Authorization header ("Bearer <token>")
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
     if (!token) {
       return res.status(401).json({ status: 401, message: "Unauthorized: No token provided" });
     }
 
-    const decoded = jwt.verify(token, keysecret);
-    const userId = decoded._id || decoded.id;
+    // 🔹 Verify access token
+    const decoded = jwt.verify(token, ACCESS_SECRET);
+    const userId = decoded.id || decoded._id;
+
+    // 🔹 Check both Normal and Google user collections
     let user = await NormalUser.findById(userId);
     let userType = "normal";
 
@@ -21,20 +28,18 @@ const authenticate = async (req, res, next) => {
     }
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ status: 401, message: "User not found" });
+      return res.status(401).json({ status: 401, message: "User not found" });
     }
 
-
-    req.token = token;
-    req.rootUser = user;
+    // 🔹 Attach to request object for downstream use
     req.userId = user._id;
-    req.userType = userType; 
+    req.userType = userType;
+    req.rootUser = user;
 
     next();
   } catch (error) {
-    return res.status(401).json({ status: 401, message: "Unauthorized: Invalid token" });
+    console.error("Auth error:", error);
+    return res.status(403).json({ status: 403, message: "Access token expired or invalid" });
   }
 };
 

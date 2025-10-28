@@ -4,7 +4,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const keysecret = process.env.SECRET_KEY
-
+const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -36,14 +37,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 8
     },
-    tokens: [
-        {
-            token: {
-                type: String,
-                required: true,
-            }
-        }
-    ],
+    refreshToken: { type: String, default: null },
     verifytoken: {
         type: String,
     }
@@ -59,19 +53,13 @@ userSchema.pre("save", async function (next) {
 
 
 
-userSchema.methods.generateAuthToken = async function () {
-    try {
-        let token23 = jwt.sign({ _id: this._id }, keysecret, {
-            expiresIn: "1d"
-        });
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign({ id: this._id }, ACCESS_SECRET, { expiresIn: "15m" });
+};
 
-        this.tokens = this.tokens.concat({ token: token23 });
-        await this.save();
-        return token23;
-    } catch (error) {
-        res.status(422).json(error)
-    }
-}
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign({ id: this._id }, REFRESH_SECRET, { expiresIn: "7d" });
+};
 
 
 
