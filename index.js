@@ -42,6 +42,7 @@ app.use("/snack", require("./Routes/SnackRoutes"));
 app.use("/parking", require("./Routes/parkingRoute"));
 app.use("/admin",require("./Routes/statRoutes"))
 app.use("/payment",require("./Routes/paymentRoute"))
+app.use("/wishlist", require("./Routes/wishslistRoutes"));
 initSocket(server);
 
 
