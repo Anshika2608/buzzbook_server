@@ -43,18 +43,9 @@ router.get("/google/callback", (req, res, next) => {
 });
 
 router.post("/logout",logoutUser)
-
-
-
-
-
-
-
-
-
 router.post("/sendpasswordLink", sendemaillink)
 
 router.get("/ForgotPassword/:id/:token", verifyForgot)
 router.post("/:id/:token", changePassword)
-router.post("/refresh-token",refreshAccessToken)
+router.get("/refresh-token",refreshAccessToken)
 module.exports = router;
