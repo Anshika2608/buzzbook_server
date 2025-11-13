@@ -7,8 +7,7 @@ const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const authenticate = async (req, res, next) => {
   try {
     // 🔹 Get token from Authorization header ("Bearer <token>")
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const token = req.cookies?.accessToken;
 
     if (!token) {
       return res.status(401).json({ status: 401, message: "Unauthorized: No token provided" });
