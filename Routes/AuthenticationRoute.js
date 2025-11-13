@@ -6,6 +6,7 @@ const authenticate = require("../Middleware/Authenticate")
 const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword, refreshAccessToken, logoutUser } = require("../Controllers/authenticationController")
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.get("/refresh-token",refreshAccessToken)
 router.get("/validUser", authenticate, (req, res) => {
   console.log("✅ /validUser hit by:", req.rootUser.email);
   res.status(200).json({
@@ -47,5 +48,5 @@ router.post("/sendpasswordLink", sendemaillink)
 
 router.get("/ForgotPassword/:id/:token", verifyForgot)
 router.post("/:id/:token", changePassword)
-router.get("/refresh-token",refreshAccessToken)
+
 module.exports = router;
