@@ -93,23 +93,21 @@ const loginUser = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials!" });
 
-    // ✅ Generate new tokens
+    // Generate new tokens
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
-    // ✅ Save refresh token in DB (rotation)
     user.refreshToken = refreshToken;
     await user.save();
 
-    // ✅ Store refresh token securely in cookie
+    // Store refresh token securely in cookie
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: true,          // true in production (HTTPS)
-      sameSite: "None",      // required for cross-site requests
+      sameSite: "None",      
       path: "/",
-      maxAge: 15 * 60 * 1000 // 15 minutes (optional)
+      maxAge: 15 * 60 * 1000 
     });
-    // ✅ Store refresh token securely in cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
@@ -118,7 +116,7 @@ const loginUser = async (req, res) => {
       maxAge: 4 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // ✅ Send access token to frontend
+    //Send access token to frontend
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -249,7 +247,6 @@ const refreshAccessToken = async (req, res) => {
     await user.save();
 
     res.cookie("accessToken", newAccessToken, {
-      
       httpOnly: true,
       secure: true,//true in production
       sameSite: "None",

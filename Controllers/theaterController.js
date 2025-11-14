@@ -166,6 +166,7 @@ const getSeatLayout = async (req, res) => {
     return res.status(200).json({
       message: "Seat layout fetched successfully",
       seating_layout: dynamicLayout,
+      prices: show.prices,
       audi_number: audi.audi_number, 
       show_date: formattedDate
     });
