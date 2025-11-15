@@ -3,95 +3,197 @@ const { getIO } = require("../socket");
 const Booking = require("../Models/BookingModel")
 const TempBooking = require("../Models/TempBookingModel")
 const Snack = require("../Models/snackModel")
+// const holdSeats = async (req, res) => {
+//   const { theater_id, movie_title, showtime, show_date, seats,parking_slot = null } = req.body;
+//   const userId = req.userId;
+//   const userEmail = req.rootUser.email;
+
+//   if (!theater_id || !movie_title || !showtime || !Array.isArray(seats) || seats.length === 0) {
+//     return res.status(400).json({ message: "Theater, movie, showtime and seats are required" });
+//   }
+
+//   try {
+//     const theater = await Theater.findOne({ _id:theater_id });
+//     if (!theater) return res.status(404).json({ message: "Theater not found" });
+
+//     const date = show_date ? new Date(show_date) : new Date();
+//     const formattedDate = date.toISOString().split("T")[0];
+
+//     const audi = theater.audis.find(audi =>
+//       audi.films_showing.some(film =>
+//         film.title.toLowerCase() === movie_title.toLowerCase() &&
+//         film.showtimes.some(s => s.time === showtime)
+//       )
+//     );
+//     if (!audi) return res.status(404).json({ message: "Movie not found in any audi at this showtime" });
+
+//     const film = audi.films_showing.find(f => f.title.toLowerCase() === movie_title.toLowerCase());
+//     const show = film.showtimes.find(s => s.time === showtime);
+
+//      // Check for already-held seats
+//     const now = new Date();
+//     const held = await TempBooking.find({
+//       theater_id,
+//       movie_title,
+//       showtime,
+//       show_date: formattedDate,
+//       hold_expires_at: { $gt: now }
+//     }).select("seats -_id");
+
+
+//     const bookedFlat = bookedSeats.flatMap(b => b.seats);
+//     for (let seat of seats) {
+//       if (bookedFlat.includes(seat)) return res.status(400).json({ message: `Seat ${seat} is already held by someone else.` });
+//     }
+
+//     let seat_price_total = 0;
+//     for (let seat of seats) {
+//       let found = false;
+//       for (let row of show.seating_layout) {
+//         const seatObj = row.find(s => s.seat_number === seat);
+//         if (seatObj) {
+//           // normalize keys
+//           const prices = Object.fromEntries(
+//             Object.entries(show.prices).map(([k, v]) => [k.toUpperCase(), v])
+//           );
+//           seat_price_total += prices[seatObj.type.toUpperCase()] || 0;
+//           found = true;
+//           break;
+//         }
+//       }
+//       if (!found) {
+//         console.warn(`Seat ${seat} not found in layout`);
+//       }
+//     }
+
+
+//     let snacks_total = 0;
+//     const snacksDetails = [];
+//     for (let s of snacks) {
+//       const snack = await Snack.findById(s.snackId);
+//       if (snack) {
+//         const option = snack.quantity_options.find(q => q.unit === s.unit);
+//         if (option) {
+//           const price = option.price * s.quantity;
+//           snacks_total += price;
+//           snacksDetails.push({ snackId: snack._id, name: snack.name, unit: s.unit, quantity: s.quantity, price });
+//         }
+//       }
+//     }
+
+//     // let parking_price = 0;
+//     // if (parking_slot) {
+//     //   // example fixed price, you can make dynamic
+//     //   parking_price = 50;
+//     // }
+
+//     // const total_price = seat_price_total + snacks_total + parking_price;
+//     const total_price = seat_price_total + snacks_total;
+//     const holdExpiry = new Date(now.getTime() + 7 * 60 * 1000);
+
+//     const tempBooking = await TempBooking.create({
+//       userId,
+//       userEmail,
+//       theater_id,
+//       audi_number: audi.audi_number,
+//       movie_title,
+//       movie_language: film.language,
+//       showtime,
+//       show_date: formattedDate,
+//       seats,
+//       seat_price_total,
+//       snacks: snacksDetails,
+//       snacks_total,
+//       parking_slot,
+//       // parking_price,
+//       total_price,
+//       hold_expires_at: holdExpiry
+//     });
+
+//     // Emit socket to update other users
+//     const io = getIO();
+//     io.emit("seatHeld", {
+//       theater_id,
+//       audi_number: audi.audi_number,
+//       movie_title,
+//       showtime,
+//       show_date,
+//       seats
+//     });
+
+//     return res.status(200).json({
+//       message: "Seats and extras held successfully",
+//       tempBookingId: tempBooking._id,
+//       seats,
+//       holdExpiresAt: holdExpiry,
+//       seat_price_total,
+//       snacks_total,
+//       // parking_price,
+//       total_price
+//     });
+
+//   } catch (error) {
+//     console.error("Error preparing payment:", error);
+//     return res.status(500).json({ message: "Internal Server Error", error: error.message });
+//   }
+// };
 const holdSeats = async (req, res) => {
-  const { theater_id, movie_title, showtime, show_date, seats, snacks = [], parking_slot = null } = req.body;
+  const { theater_id, movie_title, showtime, show_date, seats } = req.body;
   const userId = req.userId;
   const userEmail = req.rootUser.email;
 
-  if (!theater_id || !movie_title || !showtime || !Array.isArray(seats) || seats.length === 0) {
-    return res.status(400).json({ message: "Theater, movie, showtime and seats are required" });
+  if (!theater_id || !movie_title || !showtime || !seats?.length) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
-    const theater = await Theater.findOne({ _id:theater_id });
+    const theater = await Theater.findById(theater_id);
     if (!theater) return res.status(404).json({ message: "Theater not found" });
 
-    const date = show_date ? new Date(show_date) : new Date();
-    const formattedDate = date.toISOString().split("T")[0];
-
-    const audi = theater.audis.find(audi =>
-      audi.films_showing.some(film =>
-        film.title.toLowerCase() === movie_title.toLowerCase() &&
-        film.showtimes.some(s => s.time === showtime)
+    const formattedDate = new Date(show_date).toISOString().split("T")[0];
+    const audi = theater.audis.find(a =>
+      a.films_showing.some(f =>
+        f.title.toLowerCase() === movie_title.toLowerCase() &&
+        f.showtimes.some(s => s.time === showtime)
       )
     );
-    if (!audi) return res.status(404).json({ message: "Movie not found in any audi at this showtime" });
+
+    if (!audi) return res.status(404).json({ message: "Showtime not found" });
 
     const film = audi.films_showing.find(f => f.title.toLowerCase() === movie_title.toLowerCase());
     const show = film.showtimes.find(s => s.time === showtime);
 
+    // Check for already-held seats
     const now = new Date();
-
-
-    const bookedSeats = await TempBooking.find({
+    const held = await TempBooking.find({
       theater_id,
-      audi_number: audi.audi_number,
       movie_title,
       showtime,
       show_date: formattedDate,
       hold_expires_at: { $gt: now }
     }).select("seats -_id");
 
-    const bookedFlat = bookedSeats.flatMap(b => b.seats);
+    const heldSeats = held.flatMap(b => b.seats);
     for (let seat of seats) {
-      if (bookedFlat.includes(seat)) return res.status(400).json({ message: `Seat ${seat} is already held by someone else.` });
+      if (heldSeats.includes(seat)) {
+        return res.status(400).json({ message: `Seat ${seat} is already held by someone else` });
+      }
     }
 
+    // Calculate seat price
     let seat_price_total = 0;
-    for (let seat of seats) {
-      let found = false;
-      for (let row of show.seating_layout) {
-        const seatObj = row.find(s => s.seat_number === seat);
-        if (seatObj) {
-          // normalize keys
-          const prices = Object.fromEntries(
-            Object.entries(show.prices).map(([k, v]) => [k.toUpperCase(), v])
-          );
-          seat_price_total += prices[seatObj.type.toUpperCase()] || 0;
-          found = true;
-          break;
-        }
+    const prices = Object.fromEntries(
+      Object.entries(show.prices).map(([k, v]) => [k.toUpperCase(), v])
+    );
+
+    show.seating_layout.flat().forEach(seat => {
+      if (seats.includes(seat.seat_number)) {
+        seat_price_total += prices[seat.type.toUpperCase()] || 0;
       }
-      if (!found) {
-        console.warn(`Seat ${seat} not found in layout`);
-      }
-    }
+    });
 
-
-    let snacks_total = 0;
-    const snacksDetails = [];
-    for (let s of snacks) {
-      const snack = await Snack.findById(s.snackId);
-      if (snack) {
-        const option = snack.quantity_options.find(q => q.unit === s.unit);
-        if (option) {
-          const price = option.price * s.quantity;
-          snacks_total += price;
-          snacksDetails.push({ snackId: snack._id, name: snack.name, unit: s.unit, quantity: s.quantity, price });
-        }
-      }
-    }
-
-    // let parking_price = 0;
-    // if (parking_slot) {
-    //   // example fixed price, you can make dynamic
-    //   parking_price = 50;
-    // }
-
-    // const total_price = seat_price_total + snacks_total + parking_price;
-    const total_price = seat_price_total + snacks_total;
-    const holdExpiry = new Date(now.getTime() + 7 * 60 * 1000);
-
+    // Create temp booking (snacks empty initially)
+    const holdExpiry = new Date(Date.now() + 7 * 60 * 1000);
     const tempBooking = await TempBooking.create({
       userId,
       userEmail,
@@ -103,42 +205,113 @@ const holdSeats = async (req, res) => {
       show_date: formattedDate,
       seats,
       seat_price_total,
-      snacks: snacksDetails,
-      snacks_total,
-      parking_slot,
-      // parking_price,
-      total_price,
-      hold_expires_at: holdExpiry
+      snacks: [],
+      snacks_total: 0,
+      total_price: seat_price_total,
+      hold_expires_at: holdExpiry,
     });
 
-    // Emit socket to update other users
-    const io = getIO();
-    io.emit("seatHeld", {
+    getIO().emit("seatHeld", {
       theater_id,
       audi_number: audi.audi_number,
       movie_title,
       showtime,
-      show_date,
-      seats
+      show_date: formattedDate,
+      seats,
     });
 
-    return res.status(200).json({
-      message: "Seats and extras held successfully",
+    res.status(200).json({
+      message: "Seats held successfully",
       tempBookingId: tempBooking._id,
       seats,
       holdExpiresAt: holdExpiry,
       seat_price_total,
-      snacks_total,
-      // parking_price,
-      total_price
+      snacks_total: 0,
+      total_price: seat_price_total,
     });
 
-  } catch (error) {
-    console.error("Error preparing payment:", error);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+const updateTempBooking = async (req, res) => {
+  const { tempBookingId, snacks = [] } = req.body;
+
+  try {
+    const temp = await TempBooking.findById(tempBookingId);
+    if (!temp) return res.status(404).json({ message: "Temp booking not found" });
+
+    let snacks_total = 0;
+    const snacksDetails = [];
+
+    for (let s of snacks) {
+      const snack = await Snack.findById(s.snackId);
+      if (!snack) continue;
+
+      const option = snack.quantity_options.find(q => q.unit === s.unit);
+      if (!option) continue;
+
+      const price = option.price * s.quantity;
+      snacks_total += price;
+
+      snacksDetails.push({
+        snackId: snack._id,
+        name: snack.name,
+        unit: s.unit,
+        quantity: s.quantity,
+        price,
+      });
+    }
+
+    temp.snacks = snacksDetails;
+    temp.snacks_total = snacks_total;
+    temp.total_price = temp.seat_price_total + snacks_total;
+
+    await temp.save();
+
+    res.status(200).json({
+      message: "Snacks updated",
+      snacks: snacksDetails,
+      snacks_total,
+      total_price: temp.total_price,
+    });
+
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+const releaseTempBooking = async (req, res) => {
+  const { tempBookingId } = req.body;
+
+  try {
+    const temp = await TempBooking.findById(tempBookingId);
+    if (!temp) return res.status(404).json({ message: "Temp booking not found" });
+
+    const { theater_id, audi_number, movie_title, showtime, show_date, seats } = temp;
+
+    // Release seats in socket
+    getIO().emit("seatReleased", {
+      theater_id,
+      audi_number,
+      movie_title,
+      showtime,
+      show_date,
+      seats,
+    });
+
+    // Delete the temp booking
+    await TempBooking.findByIdAndDelete(tempBookingId);
+
+    res.status(200).json({ message: "Temp booking released", seats });
+
+  } catch (err) {
+    console.error("Release error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 const confirmBooking = async (req, res) => {
   const {
@@ -252,4 +425,4 @@ const confirmBooking = async (req, res) => {
 };
 
 
-module.exports = { holdSeats, confirmBooking };
+module.exports = { holdSeats, confirmBooking, updateTempBooking, releaseTempBooking};
