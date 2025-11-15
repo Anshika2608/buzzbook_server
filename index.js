@@ -27,8 +27,13 @@ app.use(
       "https://buzzbook-project-bab3.vercel.app"
     ],
     credentials: true,
+    methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+    allowedHeaders: "Content-Type, Authorization",
   })
 );
+
+// VERY IMPORTANT: handle browser preflight requests
+app.options("*", cors());
 app.use(passport.initialize());
 
 app.use("/auth", require("./Routes/AuthenticationRoute"));
