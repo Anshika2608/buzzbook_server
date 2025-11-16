@@ -229,7 +229,7 @@ const holdSeats = async (req, res) => {
       seat_price_total,
       snacks_total: 0,
       total_price: seat_price_total,
-      userId
+      userId: String(userId)
     });
 
   } catch (err) {
@@ -405,7 +405,7 @@ const updateSeats = async (req, res) => {
       showtime,
       show_date: formattedDate,
       seats,
-      userId   
+     userId: String(userId) 
     });
 
     res.status(200).json({
