@@ -218,6 +218,7 @@ const holdSeats = async (req, res) => {
       showtime,
       show_date: formattedDate,
       seats,
+      userId
     });
 
     res.status(200).json({
@@ -228,6 +229,7 @@ const holdSeats = async (req, res) => {
       seat_price_total,
       snacks_total: 0,
       total_price: seat_price_total,
+      userId
     });
 
   } catch (err) {
@@ -243,6 +245,8 @@ const updateTempBooking = async (req, res) => {
     const temp = await TempBooking.findById(tempBookingId);
     if (!temp) return res.status(404).json({ message: "Temp booking not found" });
 
+    temp.snacks = [];
+    temp.snacks_total = 0;
     let snacks_total = 0;
     const snacksDetails = [];
 
@@ -285,7 +289,7 @@ const updateTempBooking = async (req, res) => {
 };
 const releaseTempBooking = async (req, res) => {
   const { tempBookingId } = req.body;
-
+  const userId = req.userId;
   try {
     const temp = await TempBooking.findById(tempBookingId);
     if (!temp) return res.status(404).json({ message: "Temp booking not found" });
@@ -300,6 +304,7 @@ const releaseTempBooking = async (req, res) => {
       showtime,
       show_date,
       seats,
+      userId
     });
 
     // Delete the temp booking
@@ -309,6 +314,112 @@ const releaseTempBooking = async (req, res) => {
 
   } catch (err) {
     console.error("Release error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+const updateSeats = async (req, res) => {
+  const { tempBookingId, seats, show_date } = req.body;
+
+  if (!tempBookingId || !Array.isArray(seats) || seats.length === 0) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const temp = await TempBooking.findById(tempBookingId);
+    if (!temp) return res.status(404).json({ message: "Temp booking not found" });
+
+    const userId = req.userId; // <<--- GET USER ID HERE
+
+    const {
+      theater_id,
+      movie_title,
+      showtime,
+      audi_number
+    } = temp;
+
+    const formattedDate = new Date(show_date).toISOString().split("T")[0];
+
+    const theater = await Theater.findById(theater_id);
+    if (!theater) return res.status(404).json({ message: "Theater not found" });
+
+    const audi = theater.audis.find(a => a.audi_number === audi_number);
+    const film = audi.films_showing.find(f => f.title.toLowerCase() === movie_title.toLowerCase());
+    const show = film.showtimes.find(s => s.time === showtime);
+
+    const now = new Date();
+
+    // ******** RELEASE OLD SEATS ********
+    getIO().emit("seatReleased", {
+      theater_id,
+      audi_number,
+      movie_title,
+      showtime,
+      show_date: formattedDate,
+      seats: temp.seats,
+      userId          // <<--- SEND USER ID
+    });
+
+    // ******** CHECK NEW SEATS ********
+    const held = await TempBooking.find({
+      theater_id,
+      movie_title,
+      showtime,
+      show_date: formattedDate,
+      hold_expires_at: { $gt: now },
+      _id: { $ne: tempBookingId } 
+    }).select("seats -_id");
+
+    const heldSeats = held.flatMap(b => b.seats);
+
+    for (let seat of seats) {
+      if (heldSeats.includes(seat)) {
+        return res.status(400).json({ message: `Seat ${seat} is already held by someone else` });
+      }
+    }
+
+    // ******** CALCULATE NEW PRICE ********
+    let seat_price_total = 0;
+    const prices = Object.fromEntries(
+      Object.entries(show.prices).map(([k, v]) => [k.toUpperCase(), v])
+    );
+
+    show.seating_layout.flat().forEach(seatData => {
+      if (seats.includes(seatData.seat_number)) {
+        seat_price_total += prices[seatData.type.toUpperCase()] || 0;
+      }
+    });
+
+    // ******** UPDATE TEMP BOOKING ********
+    temp.seats = seats;
+    temp.seat_price_total = seat_price_total;
+    temp.total_price = seat_price_total + temp.snacks_total;
+    temp.hold_expires_at = new Date(Date.now() + 7 * 60 * 1000);
+
+    await temp.save();
+
+    // ******** EMIT NEW HOLD ********
+    getIO().emit("seatHeld", {
+      theater_id,
+      audi_number,
+      movie_title,
+      showtime,
+      show_date: formattedDate,
+      seats,
+      userId   
+    });
+
+    res.status(200).json({
+      message: "Seats updated successfully",
+      seats,
+      seat_price_total,
+      snacks_total: temp.snacks_total,
+      total_price: temp.total_price,
+      hold_expires_at: temp.hold_expires_at,
+      tempBookingId
+    });
+
+  } catch (error) {
+    console.error("Update seats error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -330,8 +441,8 @@ const confirmBooking = async (req, res) => {
     total_price,
   } = req.body;
 
-   const user_id = req.userId;       
-   const user_email = req.rootUser.email; 
+  const user_id = req.userId;
+  const user_email = req.rootUser.email;
 
   if (
     !theater_id || !audi_number || !movie_title || !movie_language ||
@@ -415,7 +526,7 @@ const confirmBooking = async (req, res) => {
     return res.status(200).json({
       message: "Booking confirmed successfully",
       booking: newBooking,
-      user_email, 
+      user_email,
     });
 
   } catch (error) {
@@ -425,4 +536,4 @@ const confirmBooking = async (req, res) => {
 };
 
 
-module.exports = { holdSeats, confirmBooking, updateTempBooking, releaseTempBooking};
+module.exports = { holdSeats, confirmBooking, updateTempBooking, releaseTempBooking, updateSeats };
