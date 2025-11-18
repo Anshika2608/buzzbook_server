@@ -151,8 +151,8 @@ const getMovieFromLocation = async (req, res) => {
     }
 
     try {
-            const theaters = await Theater.find(
-            { "location.city": { $regex: `^${location.trim()}$`, $options: "i" }  },
+        const theaters = await Theater.find(
+            { "location.city": { $regex: `^${location.trim()}$`, $options: "i" } },
             { "audis.films_showing.title": 1 }
         );
 
@@ -174,11 +174,11 @@ const getMovieFromLocation = async (req, res) => {
 
         const moviesFromDB = await movie.find(
             { title: { $in: filmTitles } },
-            { poster_img: 1, title: 1, genre: 1, language: 1, _id: 1 } 
+            { poster_img: 1, title: 1, genre: 1, language: 1, _id: 1 }
         );
 
 
-       
+
         return res.status(200).json({
             movies: moviesFromDB,
             source: "db"
@@ -431,97 +431,134 @@ const getMovieByLanguage = async (req, res) => {
 // ADD A REPLY TO A REVIEW
 // ========================
 const addReplyToReview = async (req, res) => {
-  try {
-    const { movieId, reviewId } = req.params;
-    const { reply } = req.body;
+    try {
+        const { movieId, reviewId } = req.params;
+        const { reply } = req.body;
 
-    if (!reply) {
-      return res.status(400).json({ message: "Reply text is required" });
+        if (!reply) {
+            return res.status(400).json({ message: "Reply text is required" });
+        }
+
+        // Use authenticated user
+        const userName = req.rootUser.name || "Anonymous";
+
+        const movies = await movie.findById(movieId);
+        if (!movies) return res.status(404).json({ message: "Movie not found" });
+
+        const review = movies.reviews.id(reviewId);
+        if (!review) return res.status(404).json({ message: "Review not found" });
+
+        review.replies.push({ user_name: userName, reply });
+        await movies.save();
+
+        res.status(200).json({
+            message: "Reply added successfully",
+            replies: review.replies,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error adding reply", error: error.message });
     }
-
-    // Use authenticated user
-    const userName = req.rootUser.name || "Anonymous";
-
-    const movies = await movie.findById(movieId);
-    if (!movies) return res.status(404).json({ message: "Movie not found" });
-
-    const review = movies.reviews.id(reviewId);
-    if (!review) return res.status(404).json({ message: "Review not found" });
-
-    review.replies.push({ user_name: userName, reply });
-    await movies.save();
-
-    res.status(200).json({
-      message: "Reply added successfully",
-      replies: review.replies,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error adding reply", error: error.message });
-  }
 };
 
 // ========================
 // LIKE / UNLIKE REVIEW
 // ========================
 const toggleHelpfulReview = async (req, res) => {
-  try {
-    const { movieId, reviewId } = req.params;
+    try {
+        const { movieId, reviewId } = req.params;
 
-    // Use authenticated user
-    const userName = req.rootUser.name || "Anonymous";
+        // Use authenticated user
+        const userName = req.rootUser.name || "Anonymous";
 
-    const movies = await movie.findById(movieId);
-    if (!movies) return res.status(404).json({ message: "Movie not found" });
+        const movies = await movie.findById(movieId);
+        if (!movies) return res.status(404).json({ message: "Movie not found" });
 
-    const review = movies.reviews.id(reviewId);
-    if (!review) return res.status(404).json({ message: "Review not found" });
+        const review = movies.reviews.id(reviewId);
+        if (!review) return res.status(404).json({ message: "Review not found" });
 
-    const alreadyLiked = review.helpful_users.includes(userName);
+        const alreadyLiked = review.helpful_users.includes(userName);
 
-    if (alreadyLiked) {
-      // Remove like
-      review.helpful_users = review.helpful_users.filter(u => u !== userEmail);
-      review.helpful_count -= 1;
-    } else {
-      // Add like
-      review.helpful_users.push(userName);
-      review.helpful_count += 1;
+        if (alreadyLiked) {
+            // Remove like
+            review.helpful_users = review.helpful_users.filter(u => u !== userEmail);
+            review.helpful_count -= 1;
+        } else {
+            // Add like
+            review.helpful_users.push(userName);
+            review.helpful_count += 1;
+        }
+
+        await movies.save();
+
+        res.status(200).json({
+            message: alreadyLiked ? "Like removed" : "Marked as helpful",
+            helpful_count: review.helpful_count,
+            helpful_users: review.helpful_users,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating helpful count", error: error.message });
     }
-
-    await movies.save();
-
-    res.status(200).json({
-      message: alreadyLiked ? "Like removed" : "Marked as helpful",
-      helpful_count: review.helpful_count,
-      helpful_users: review.helpful_users,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error updating helpful count", error: error.message });
-  }
 };
 
 // ========================
 // GET ALL REPLIES FOR A REVIEW
 // ========================
 const getRepliesForReview = async (req, res) => {
-  try {
-    const { movieId, reviewId } = req.params;
+    try {
+        const { movieId, reviewId } = req.params;
 
-    const movies = await movie.findById(movieId);
-    if (!movies) return res.status(404).json({ message: "Movie not found" });
+        const movies = await movie.findById(movieId);
+        if (!movies) return res.status(404).json({ message: "Movie not found" });
 
-    const review = movies.reviews.id(reviewId);
-    if (!review) return res.status(404).json({ message: "Review not found" });
+        const review = movies.reviews.id(reviewId);
+        if (!review) return res.status(404).json({ message: "Review not found" });
 
-    res.status(200).json({
-      message: "Replies fetched successfully",
-      replies: review.replies,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching replies", error: error.message });
-  }
+        res.status(200).json({
+            message: "Replies fetched successfully",
+            replies: review.replies,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching replies", error: error.message });
+    }
+};
+const addReview = async (req, res) => {
+    try {
+        const { movieId } = req.params;
+        const { critic_name, rating, review } = req.body;
+
+        if (!critic_name || !rating || !review) {
+            return res.status(400).json({ message: "All fields are required." });
+        }
+
+        const movieData = await movie.findById(movieId);
+
+        if (!movieData) {
+            return res.status(404).json({ message: "Movie not found" });
+        }
+
+        const newReview = {
+            critic_name,
+            rating,
+            review,
+            helpful_count: 0,
+            helpful_users: [],
+            replies: []
+        };
+
+        movieData.reviews.push(newReview);
+        await movieData.save();
+
+        res.status(201).json({
+            message: "Review added successfully",
+            review: newReview
+        });
+
+    } catch (error) {
+        console.error("Error adding review:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
 };
 module.exports = {
     getMovie, addMovie, getMovieFromLocation, getMovieDetails, deleteMovie, comingSoon, getUniqueGenres, getMoviesByGenre,
-    getMovieByLanguage,addReplyToReview,toggleHelpfulReview,getRepliesForReview
+    getMovieByLanguage, addReplyToReview, toggleHelpfulReview, getRepliesForReview, addReview
 }

@@ -3,7 +3,7 @@ const router = express.Router();
 
 const {uploadMultiple} = require("../Middleware/Multer"); 
 const { getMovie, addMovie,getMovieFromLocation, getMovieDetails,deleteMovie,comingSoon,getUniqueGenres ,getMoviesByGenre,getMovieByLanguage,
-    addReplyToReview,toggleHelpfulReview,getRepliesForReview
+    addReplyToReview,toggleHelpfulReview,getRepliesForReview,addReview
 } = require("../Controllers/movieController");
 
 const authenticate = require("../Middleware/Authenticate")
@@ -35,4 +35,5 @@ router.get(
   "/:movieId/reviews/:reviewId/replies",
   getRepliesForReview
 );
+router.post("/:movieId/reviews",authenticate,addReview)
 module.exports = router;
