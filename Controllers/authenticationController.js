@@ -104,9 +104,9 @@ const loginUser = async (req, res) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: true,          // true in production (HTTPS)
-      sameSite: "None",      
+      sameSite: "None",
       path: "/",
-      maxAge: 15 * 60 * 1000 
+      maxAge: 15 * 60 * 1000
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -122,7 +122,7 @@ const loginUser = async (req, res) => {
       user: {
         name: user.name,
         email: user.email,
-        id:user._id
+        id: user._id
       },
     });
   } catch (error) {
@@ -280,7 +280,12 @@ const logoutUser = async (req, res) => {
       user.refreshToken = null;
       await user.save();
     }
-
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/"
+    });
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true,
