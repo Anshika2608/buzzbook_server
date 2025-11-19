@@ -7,16 +7,24 @@ const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const authenticate = async (req, res, next) => {
   try {
     // 🔹 Get token from Authorization header ("Bearer <token>")
-    const token = req.cookies?.accessToken;
+      const token = req.cookies.accessToken;
 
     if (!token) {
-      return res.status(401).json({ status: 401, message: "Unauthorized: No token provided" });
+       console.log("❌ No access token in cookie");
+      return res.status(401).json({ message: "No access token" });
     }
 
-    // 🔹 Verify access token
-    const decoded = jwt.verify(token, ACCESS_SECRET);
-    const userId = decoded.id || decoded._id;
+    let decoded;
+    try {
+      decoded = jwt.verify(token, ACCESS_SECRET);
+    } catch (err) {
+      return res.status(403).json({ message: "Access token expired or invalid" });
+    }
 
+    const userId = decoded.id;
+
+       if (!userId)
+      return res.status(403).json({ message: "Invalid token payload" });
     // 🔹 Check both Normal and Google user collections
     let user = await NormalUser.findById(userId);
     let userType = "normal";
@@ -31,7 +39,7 @@ const authenticate = async (req, res, next) => {
     }
 
     // 🔹 Attach to request object for downstream use
-    req.userId = user._id;
+    req.userId = user._id.toString();
     req.userType = userType;
     req.rootUser = user;
 
@@ -43,3 +51,4 @@ const authenticate = async (req, res, next) => {
 };
 
 module.exports = authenticate;
+

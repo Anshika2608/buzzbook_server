@@ -100,20 +100,22 @@ const loginUser = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    // Store refresh token securely in cookie
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true,          // true in production (HTTPS)
+      secure: true,
       sameSite: "None",
       path: "/",
-      maxAge: 15 * 60 * 1000
+      maxAge: 15 * 60 * 1000,
+      overwrite: true, 
     });
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "None",
       path: "/",
-      maxAge: 4 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      overwrite: true,  
     });
 
     //Send access token to frontend
