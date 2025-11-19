@@ -218,7 +218,7 @@ const holdSeats = async (req, res) => {
       showtime,
       show_date: formattedDate,
       seats,
-      userId
+      userId:String(userId)
     });
 
     res.status(200).json({
