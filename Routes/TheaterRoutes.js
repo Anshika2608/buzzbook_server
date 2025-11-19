@@ -5,7 +5,7 @@ const authenticate=require("../Middleware/Authenticate")
 const router=express.Router();
 router.get("/theater_list",getTheater);
 router.post("/add_theater",generateSeatsMiddleware,addTheater);
-router.get("/seat_layout",getSeatLayout)
+router.get("/seat_layout",authenticate,getSeatLayout)
 router.get("/get_theater",getTheaterForMovie)
 router.put("/seatBook",bookSeat);
 router.delete("/delete_theater/:theater_id",authenticate,deleteTheater)
