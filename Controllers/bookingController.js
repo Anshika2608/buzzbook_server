@@ -218,7 +218,7 @@ const holdSeats = async (req, res) => {
       showtime,
       show_date: formattedDate,
       seats,
-      userId:String(userId)
+      userId: String(userId)
     });
 
     res.status(200).json({
@@ -288,6 +288,7 @@ const updateTempBooking = async (req, res) => {
   }
 };
 const releaseTempBooking = async (req, res) => {
+  console.log("🔥 releaseTempBooking API HIT");
   const { tempBookingId } = req.body;
   const userId = req.userId;
   try {
@@ -295,7 +296,7 @@ const releaseTempBooking = async (req, res) => {
     if (!temp) return res.status(404).json({ message: "Temp booking not found" });
 
     const { theater_id, audi_number, movie_title, showtime, show_date, seats } = temp;
-
+    console.log("📌 BEFORE EMIT seatReleased");
     // Release seats in socket
     getIO().emit("seatReleased", {
       theater_id,
@@ -306,7 +307,8 @@ const releaseTempBooking = async (req, res) => {
       seats,
       userId
     });
-
+    console.log("📌 AFTER EMIT seatReleased");
+    console.log("🔥 Emitted seatReleased for seats:", seats);
     // Delete the temp booking
     await TempBooking.findByIdAndDelete(tempBookingId);
 
@@ -366,7 +368,7 @@ const updateSeats = async (req, res) => {
       showtime,
       show_date: formattedDate,
       hold_expires_at: { $gt: now },
-      _id: { $ne: tempBookingId } 
+      _id: { $ne: tempBookingId }
     }).select("seats -_id");
 
     const heldSeats = held.flatMap(b => b.seats);
@@ -405,7 +407,7 @@ const updateSeats = async (req, res) => {
       showtime,
       show_date: formattedDate,
       seats,
-     userId: String(userId) 
+      userId: String(userId)
     });
 
     res.status(200).json({
