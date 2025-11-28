@@ -456,7 +456,7 @@ const confirmBooking = async (req, res) => {
 
   try {
 
-    const theater = await Theater.findById({ theater_id });
+    const theater = await Theater.findById(theater_id );
     if (!theater) return res.status(404).json({ message: "Theater not found" });
 
 
