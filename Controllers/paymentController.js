@@ -43,7 +43,7 @@ const verifyPayment = async (req, res) => {
       req.body = bookingDetails; 
       await confirmBooking(req, res);
       
-      return;
+      return res.status(200).json({ success: true });
 
     } else {
       return res.status(400).json({ success: false, message: "Invalid signature" });
