@@ -447,7 +447,7 @@ const confirmBooking = async (req, res) => {
   const user_email = req.rootUser.email;
 
   if (
-    !theater_id || !audi_number || !movie_title || !movie_language ||
+    !theater_id || !movie_title ||
     !showtime || !show_date || !Array.isArray(seats) || seats.length === 0 ||
     !paymentId || !total_price
   ) {
