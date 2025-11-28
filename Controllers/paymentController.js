@@ -1,12 +1,12 @@
 const razorpay = require("../config/razorpay");
 const crypto = require("crypto");
-const {confirmBooking} = require("./bookingController")
+const { confirmBooking } = require("./bookingController")
 const createOrder = async (req, res) => {
   try {
     const { amount, currency = "INR", receipt } = req.body;
 
     const options = {
-      amount: amount * 100, 
+      amount: amount * 100,
       currency,
       receipt: receipt || "receipt_order_" + Math.floor(Math.random() * 10000),
     };
@@ -18,7 +18,7 @@ const createOrder = async (req, res) => {
       order_id: order.id,
       currency: order.currency,
       amount: order.amount,
-      key: process.env.RAZORPAY_KEY_ID, 
+      key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
     console.error("Razorpay Create Order Error:", error);
@@ -39,10 +39,11 @@ const verifyPayment = async (req, res) => {
 
     if (expectedSignature === razorpay_signature) {
 
-
-      req.body = bookingDetails; 
+      req.userId = bookingDetails.user_id;
+      req.rootUser = { email: bookingDetails.user_email };
+      req.body = bookingDetails;
       await confirmBooking(req, res);
-      
+
       return res.status(200).json({ success: true });
 
     } else {
@@ -50,7 +51,7 @@ const verifyPayment = async (req, res) => {
     }
   } catch (error) {
     console.error("Razorpay Verify Error:", error);
-    return res.status(500).json({ success: false, message: "Verification failed" });
+    return res.status(500).json({ success: false, message: "Verification failed",error });
   }
 };
-module.exports={createOrder,verifyPayment};
+module.exports = { createOrder, verifyPayment };
