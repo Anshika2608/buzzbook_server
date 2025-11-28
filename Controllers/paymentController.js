@@ -42,7 +42,7 @@ const verifyPayment = async (req, res) => {
       req.userId = bookingDetails.user_id;
       req.rootUser = { email: bookingDetails.user_email };
       req.body = bookingDetails;
-      await confirmBooking(req, res);
+      await confirmBooking({ body: bookingDetails, userId: req.userId, rootUser: req.rootUser }, res);
 
       return res.status(200).json({ success: true });
 
