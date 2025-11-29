@@ -310,9 +310,9 @@ const confirmBooking = async (req, res) => {
     total_price,
   } = req.body;
 
-const user_id = req.userId;
-const user_email = req.rootUser?.email;
-const user_type = req.rootUser?.user_type;
+  const user_id = req.userId;
+  const user_email = req.rootUser?.email;
+  const user_type = req.userType === "google" ? "GoogleUser" : "NormalUser";
 
 
   if (
@@ -392,7 +392,7 @@ const user_type = req.rootUser?.user_type;
       movie_title,
       movie_language,
       showtime,
-      show_date:formattedDate,
+      show_date: formattedDate,
       seats,
       seat_price_total,
       snacks,
