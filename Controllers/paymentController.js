@@ -40,7 +40,7 @@ const verifyPayment = async (req, res) => {
     if (expectedSignature === razorpay_signature) {
 
       req.userId = bookingDetails.user_id;
-      req.rootUser = { email: bookingDetails.user_email };
+      req.rootUser = { email: bookingDetails.user_email , user_type: bookingDetails.user_type};
       req.body = bookingDetails;
       await confirmBooking({ body: bookingDetails, userId: req.userId, rootUser: req.rootUser }, res);
 

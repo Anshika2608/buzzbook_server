@@ -2,20 +2,20 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
-    // user_id: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   refPath: "user_type", 
-    //   required: true,
-    // },
-    // user_type: {
-    //   type: String,
-    //   enum: ["NormalUser", "GoogleUser"],
-    //   required: true,
-    // },
-    // user_email: {
-    //   type: String,
-    //   required: true,
-    // },
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "user_type", 
+      required: true,
+    },
+    user_type: {
+      type: String,
+      enum: ["NormalUser", "GoogleUser"],
+      required: true,
+    },
+    user_email: {
+      type: String,
+      required: true,
+    },
 
     theater_id: {
       type: mongoose.Schema.Types.ObjectId,

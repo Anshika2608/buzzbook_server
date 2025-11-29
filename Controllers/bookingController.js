@@ -456,7 +456,7 @@ const confirmBooking = async (req, res) => {
 
   try {
 
-    const theater = await Theater.findById(theater_id );
+    const theater = await Theater.findById(theater_id);
     if (!theater) return res.status(404).json({ message: "Theater not found" });
 
 
@@ -497,6 +497,8 @@ const confirmBooking = async (req, res) => {
 
     const newBooking = new Booking({
       user_id,
+      user_type,
+      user_email,
       theater_id: theater._id,
       theater_name: theater.name,
       audi_number,
@@ -526,7 +528,7 @@ const confirmBooking = async (req, res) => {
     });
 
     return res.status(200).json({
-      success:true,
+      success: true,
       message: "Booking confirmed successfully",
       booking: newBooking,
       user_email,
