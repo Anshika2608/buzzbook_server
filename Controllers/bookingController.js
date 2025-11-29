@@ -321,7 +321,7 @@ const confirmBooking = async (req, res) => {
   ) {
     return res.status(400).json({ message: "All required fields must be provided." });
   }
-   const formattedDate = new Date(show_date).toISOString().split("T")[0];
+  const formattedDate = new Date(show_date).toISOString().split("T")[0];
   try {
 
     const theater = await Theater.findById(theater_id);
@@ -340,7 +340,7 @@ const confirmBooking = async (req, res) => {
     const show = film.showtimes.find(s => s.time === showtime);
     if (!show) return res.status(404).json({ message: "Showtime not found" });
 
-     //CHECK BOOKED SEATS (DATE BASED)
+    //CHECK BOOKED SEATS (DATE BASED)
     const existingBookings = await Booking.find({
       theater_id,
       audi_number,
@@ -366,7 +366,8 @@ const confirmBooking = async (req, res) => {
       movie_title,
       showtime,
       show_date: formattedDate,
-      hold_expires_at: { $gt: now }
+      hold_expires_at: { $gt: now },
+      userId: { $ne: user_id }
     });
 
     const heldSeats = held.flatMap(h => h.seats);
@@ -378,25 +379,7 @@ const confirmBooking = async (req, res) => {
       });
     }
 
-    // for (let row of show.seating_layout) {
-    //   for (let seat of row) {
-    //     if (seats.includes(seat.seat_number)) {
-    //       if (seat.is_booked) {
-    //         return res.status(400).json({ message: `Seat ${seat.seat_number} is already booked.` });
-    //       }
-    //       if (seat.is_held && seat.hold_expires_at < now) {
-    //         return res.status(400).json({ message: `Seat ${seat.seat_number} hold expired.` });
-    //       }
 
-    //       seat.is_booked = true;
-    //       seat.is_held = false;
-    //       seat.hold_expires_at = null;
-    //       bookedSeats.push(seat.seat_number);
-    //     }
-    //   }
-    // }
-
-    // await theater.save();
 
     const newBooking = new Booking({
       user_id,
