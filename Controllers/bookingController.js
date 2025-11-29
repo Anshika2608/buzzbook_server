@@ -321,7 +321,7 @@ const confirmBooking = async (req, res) => {
   ) {
     return res.status(400).json({ message: "All required fields must be provided." });
   }
-
+   const formattedDate = new Date(show_date).toISOString().split("T")[0];
   try {
 
     const theater = await Theater.findById(theater_id);
