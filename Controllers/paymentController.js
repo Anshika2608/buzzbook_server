@@ -52,7 +52,7 @@ const verifyPayment = async (req, res) => {
     // User is authenticated now (coming from Authenticate middleware)
     const user_id = req.userId;
     const user_email = req.rootUser.email;
-    const user_type = req.rootUser.user_type;
+    const user_type = req.userType === "google" ? "GoogleUser" : "NormalUser";
 
     // Attach correct user data to bookingDetails
     const updatedBookingDetails = {
