@@ -464,41 +464,50 @@ const addReplyToReview = async (req, res) => {
 // LIKE / UNLIKE REVIEW
 // ========================
 const toggleHelpfulReview = async (req, res) => {
-    try {
-        const { movieId, reviewId } = req.params;
+  try {
+    const { movieId, reviewId } = req.params;
 
-        // Use authenticated user
-        const userName = req.rootUser.name || "Anonymous";
+    const userId = req.userId;
+    const userEmail = req.rootUser.email;
+    const userName = req.rootUser.name;
 
-        const movies = await movie.findById(movieId);
-        if (!movies) return res.status(404).json({ message: "Movie not found" });
-
-        const review = movies.reviews.id(reviewId);
-        if (!review) return res.status(404).json({ message: "Review not found" });
-
-        const alreadyLiked = review.helpful_users.includes(userName);
-
-        if (alreadyLiked) {
-            // Remove like
-            review.helpful_users = review.helpful_users.filter(u => u !== userEmail);
-            review.helpful_count -= 1;
-        } else {
-            // Add like
-            review.helpful_users.push(userName);
-            review.helpful_count += 1;
-        }
-
-        await movies.save();
-
-        res.status(200).json({
-            message: alreadyLiked ? "Like removed" : "Marked as helpful",
-            helpful_count: review.helpful_count,
-            helpful_users: review.helpful_users,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Error updating helpful count", error: error.message });
+    if (!userId || !userEmail) {
+      return res.status(400).json({ message: "User details missing" });
     }
+
+    const movies = await movie.findById(movieId);
+    if (!movies) return res.status(404).json({ message: "Movie not found" });
+
+    const review = movies.reviews.id(reviewId);
+    if (!review) return res.status(404).json({ message: "Review not found" });
+
+    const alreadyLiked = review.helpful_users.some(u => u.userId === userId);
+
+    if (alreadyLiked) {
+      review.helpful_users = review.helpful_users.filter(u => u.userId !== userId);
+      review.helpful_count -= 1;
+    } else {
+      review.helpful_users.push({
+        userId,
+        name: userName,
+        email: userEmail
+      });
+      review.helpful_count += 1;
+    }
+
+    await movies.save();
+
+    res.status(200).json({
+      message: alreadyLiked ? "Like removed" : "Marked as helpful",
+      helpful_count: review.helpful_count,
+      helpful_users: review.helpful_users
+    });
+
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating helpful count", error: error.message });
+  }
 };
+
 
 // ========================
 // GET ALL REPLIES FOR A REVIEW
