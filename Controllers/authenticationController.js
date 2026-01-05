@@ -48,16 +48,42 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists!" });
     } else if (password !== cpassword) {
       return res.status(400).json({ message: "Password and confirmPassword do not match!" });
-    } else if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters!" });
+    } else if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters!" });
     } else if (!nameRegex.test(name)) {
       return res.status(400).json({ message: "Name must contain only alphabets (2-40 characters)!" });
     }
 
     const finalUser = new users({ name, email, password, cpassword });
-    const storeUser = await finalUser.save();
-    console.log(storeUser);
-    res.status(201).json({ message: "User Successfully added" });
+    const accessToken = finalUser.generateAccessToken();
+    const refreshToken = finalUser.generateRefreshToken();
+
+    finalUser.refreshToken = refreshToken;
+    await finalUser.save();
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(201).json({
+      message: "User registered & logged in",
+      user: {
+        id: finalUser._id,
+        name: finalUser.name,
+        email: finalUser.email,
+      },
+    });
+   ;
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error while registering a user", error: error.message });
@@ -106,7 +132,7 @@ const loginUser = async (req, res) => {
       sameSite: "None",
       path: "/",
       maxAge: 15 * 60 * 1000,
-      overwrite: true, 
+      overwrite: true,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -115,7 +141,7 @@ const loginUser = async (req, res) => {
       sameSite: "None",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      overwrite: true,  
+      overwrite: true,
     });
 
     //Send access token to frontend

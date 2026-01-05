@@ -39,7 +39,7 @@ router.get("/google/callback", (req, res, next) => {
     });
 
     // ✅ Redirect and send access token to frontend
-    res.redirect(`http://localhost:3000/dashboard?accessToken=${accessJWT}`);
+    res.redirect(`https://buzzbook-project.vercel.app/?accessToken=${accessJWT}`);
   })(req, res, next);
 });
 
