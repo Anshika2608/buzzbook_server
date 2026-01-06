@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const passport = require("passport");
 const nodemailer = require("nodemailer");
+const {Resend}=require("resend");
+const resend = new Resend(process.env.RESEND_MAIL_KEY);
 const keysecret = process.env.SECRET_KEY
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -171,52 +173,144 @@ googleLogin = passport.authenticate("google", {
   scope: ["profile", "email"]
 });
 const sendemaillink = async (req, res) => {
-
-  const { emailaddress } = req.body;
-  if (!emailaddress) {
-    res.status(401).json({ status: 401, message: "Enter your email" })
-  }
-
   try {
-    const userfind = await users.findOne({ email: emailaddress })
-    if (!userfind) {
-      return res.status(401).json({ status: 401, message: "User not found" });
+    console.log("🔐 Forgot password request received");
+
+    const { emailaddress } = req.body;
+    console.log("📩 Email received:", emailaddress);
+
+    if (!emailaddress) {
+      console.warn("⚠️ Email missing in request");
+      return res.status(400).json({ message: "Enter your email" });
     }
-    const token = jwt.sign({ _id: userfind._id }, keysecret, {
-      expiresIn: "20m"
-    });
-    const setusertoken = await users.findByIdAndUpdate({ _id: userfind._id }, { verifytoken: token }, { new: true });
-    if (setusertoken) {
-      const mailOptions = {
-        from: process.env.EMAIL,
+
+    const user = await users.findOne({ email: emailaddress });
+    if (!user) {
+      console.warn("❌ User not found for email:", emailaddress);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("✅ User found:", user._id.toString());
+
+    // Generate token
+    let token;
+    try {
+      token = jwt.sign(
+        { _id: user._id },
+        process.env.SECRET_KEY,
+        { expiresIn: "20m" }
+      );
+      console.log("🔑 Reset token generated");
+    } catch (jwtError) {
+      console.error("❌ JWT generation failed:", jwtError);
+      return res.status(500).json({ message: "Token generation failed" });
+    }
+
+    // Save token
+    try {
+      await users.findByIdAndUpdate(user._id, { verifytoken: token });
+      console.log("💾 Reset token saved to DB");
+    } catch (dbError) {
+      console.error("❌ Failed to save token to DB:", dbError);
+      return res.status(500).json({ message: "Database update failed" });
+    }
+
+    const resetUrl = `${process.env.FRONTEND_URL}/NewPassword/${user._id}/${token}`;
+    console.log("🔗 Reset URL created:", resetUrl);
+
+    // Send email
+    try {
+      const emailResponse = await resend.emails.send({
+        from: "Your App <onboarding@resend.dev>",
         to: emailaddress,
-        subject: "Sending Email For password Reset",
-        text: `This Link Valid For 20 MINUTES http://localhost:3000/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
-      }
+        subject: "Reset your password",
+        html: `
+          <h3>Password Reset</h3>
+          <p>This link is valid for 20 minutes.</p>
+          <a href="${resetUrl}">Reset Password</a>
+        `,
+      });
 
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error("MAIL ERROR FULL:", error);
-          return res.status(500).json({
-            status: 500,
-            message: "Email not sent",
-            error: error.message,
-          });
-        } else {
-          console.log("Email sent", info.response);
-          res.status(201).json({ status: 201, message: "Email sent Successfully" })
-        }
-      })
+      console.log("📨 Email sent successfully:", emailResponse);
+    } catch (emailError) {
+      console.error("❌ Resend email failed:", {
+        message: emailError.message,
+        name: emailError.name,
+        stack: emailError.stack,
+        response: emailError.response || null,
+      });
 
+      return res.status(502).json({
+        message: "Failed to send reset email",
+      });
     }
 
-  }
+    console.log("✅ Forgot password flow completed");
+    return res.status(200).json({
+      message: "Password reset email sent",
+    });
 
-  catch (err) {
-    console.error("Catch block error:", err);
-    res.status(401).json({ status: 401, message: "invalid user" })
+  } catch (error) {
+    console.error("🔥 Unexpected forgot-password error:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
-}
+};
+
+
+// const sendemaillink = async (req, res) => {
+
+//   const { emailaddress } = req.body;
+//   if (!emailaddress) {
+//     res.status(401).json({ status: 401, message: "Enter your email" })
+//   }
+
+//   try {
+//     const userfind = await users.findOne({ email: emailaddress })
+//     if (!userfind) {
+//       return res.status(401).json({ status: 401, message: "User not found" });
+//     }
+//     const token = jwt.sign({ _id: userfind._id }, keysecret, {
+//       expiresIn: "20m"
+//     });
+//     const setusertoken = await users.findByIdAndUpdate({ _id: userfind._id }, { verifytoken: token }, { new: true });
+//     if (setusertoken) {
+//       const mailOptions = {
+//         from: process.env.EMAIL,
+//         to: emailaddress,
+//         subject: "Sending Email For password Reset",
+//         text: `This Link Valid For 20 MINUTES http://localhost:3000/NewPassword/${userfind.id}/${setusertoken.verifytoken}`
+//       }
+
+//       transporter.sendMail(mailOptions, (error, info) => {
+//         if (error) {
+//           console.error("MAIL ERROR FULL:", error);
+//           return res.status(500).json({
+//             status: 500,
+//             message: "Email not sent",
+//             error: error.message,
+//           });
+//         } else {
+//           console.log("Email sent", info.response);
+//           res.status(201).json({ status: 201, message: "Email sent Successfully" })
+//         }
+//       })
+
+//     }
+
+//   }
+
+//   catch (err) {
+//     console.error("Catch block error:", err);
+//     res.status(401).json({ status: 401, message: "invalid user" })
+//   }
+// }
 // verify user for forgot password time
 
 const verifyForgot = async (req, res) => {
