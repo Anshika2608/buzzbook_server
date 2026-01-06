@@ -83,7 +83,7 @@ const registerUser = async (req, res) => {
         email: finalUser.email,
       },
     });
-   ;
+    ;
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error while registering a user", error: error.message });
@@ -196,8 +196,12 @@ const sendemaillink = async (req, res) => {
 
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.log("error", error);
-          res.status(401).json({ status: 401, message: "email not send" })
+          console.error("MAIL ERROR FULL:", error);
+          return res.status(500).json({
+            status: 500,
+            message: "Email not sent",
+            error: error.message,
+          });
         } else {
           console.log("Email sent", info.response);
           res.status(201).json({ status: 201, message: "Email sent Successfully" })
