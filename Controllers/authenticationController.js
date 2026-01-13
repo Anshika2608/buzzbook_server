@@ -176,10 +176,8 @@ googleLogin = passport.authenticate("google", {
 });
 const sendemaillink = async (req, res) => {
   try {
-    console.log("🔐 Forgot password request received");
 
     const { emailaddress } = req.body;
-    console.log("📩 Email received:", emailaddress);
 
     if (!emailaddress) {
       return res.status(400).json({ message: "Enter your email" });
@@ -190,26 +188,18 @@ const sendemaillink = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log("✅ User found:", user._id.toString());
-
-    // 🔑 Generate JWT reset token
     const token = jwt.sign(
       { _id: user._id },
       keysecret,
       { expiresIn: "20m" }
     );
 
-    // 💾 Save token in DB
     await users.findByIdAndUpdate(user._id, {
       verifytoken: token
     });
 
-    // 🔗 URL-safe reset link
     const resetUrl = `${process.env.FRONTEND_URL}/NewPassword/${user._id}/${encodeURIComponent(token)}`;
 
-    console.log("🔗 Reset URL:", resetUrl);
-
-    // 📧 Send email via SendGrid
     const msg = {
       to: emailaddress,
       from: {
@@ -235,15 +225,12 @@ const sendemaillink = async (req, res) => {
     };
 
     await sgMail.send(msg);
-
-    console.log("📨 Reset email sent via SendGrid");
-
     return res.status(200).json({
       message: "Password reset email sent"
     });
 
   } catch (error) {
-    console.error("🔥 Forgot-password error:", error);
+    console.error("Forgot-password error:", error);
     return res.status(500).json({
       message: "Internal server error"
     });
