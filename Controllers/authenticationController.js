@@ -5,6 +5,8 @@ const axios = require("axios");
 const passport = require("passport");
 const nodemailer = require("nodemailer");
 const {Resend}=require("resend");
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const resend = new Resend(process.env.RESEND_MAIL_KEY);
 const keysecret = process.env.SECRET_KEY
 const transporter = nodemailer.createTransport({
@@ -180,88 +182,74 @@ const sendemaillink = async (req, res) => {
     console.log("📩 Email received:", emailaddress);
 
     if (!emailaddress) {
-      console.warn("⚠️ Email missing in request");
       return res.status(400).json({ message: "Enter your email" });
     }
 
     const user = await users.findOne({ email: emailaddress });
     if (!user) {
-      console.warn("❌ User not found for email:", emailaddress);
       return res.status(404).json({ message: "User not found" });
     }
 
     console.log("✅ User found:", user._id.toString());
 
-    // Generate token
-    let token;
-    try {
-      token = jwt.sign(
-        { _id: user._id },
-        process.env.SECRET_KEY,
-        { expiresIn: "20m" }
-      );
-      console.log("🔑 Reset token generated");
-    } catch (jwtError) {
-      console.error("❌ JWT generation failed:", jwtError);
-      return res.status(500).json({ message: "Token generation failed" });
-    }
+    // 🔑 Generate JWT reset token
+    const token = jwt.sign(
+      { _id: user._id },
+      keysecret,
+      { expiresIn: "20m" }
+    );
 
-    // Save token
-    try {
-      await users.findByIdAndUpdate(user._id, { verifytoken: token });
-      console.log("💾 Reset token saved to DB");
-    } catch (dbError) {
-      console.error("❌ Failed to save token to DB:", dbError);
-      return res.status(500).json({ message: "Database update failed" });
-    }
+    // 💾 Save token in DB
+    await users.findByIdAndUpdate(user._id, {
+      verifytoken: token
+    });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/NewPassword/${user._id}/${token}`;
-    console.log("🔗 Reset URL created:", resetUrl);
+    // 🔗 URL-safe reset link
+    const resetUrl = `${process.env.FRONTEND_URL}/NewPassword/${user._id}/${encodeURIComponent(token)}`;
 
-    // Send email
-    try {
-      const emailResponse = await resend.emails.send({
-        from: "Your App <onboarding@resend.dev>",
-        to: emailaddress,
-        subject: "Reset your password",
-        html: `
+    console.log("🔗 Reset URL:", resetUrl);
+
+    // 📧 Send email via SendGrid
+    const msg = {
+      to: emailaddress,
+      from: {
+        email: process.env.FROM_EMAIL,
+        name: "Shifas"
+      },
+      subject: "Reset your password",
+      html: `
+        <div style="font-family:Arial,sans-serif">
           <h3>Password Reset</h3>
-          <p>This link is valid for 20 minutes.</p>
-          <a href="${resetUrl}">Reset Password</a>
-        `,
-      });
+          <p>This link is valid for <b>20 minutes</b>.</p>
+          <a href="${resetUrl}" style="
+            padding:10px 16px;
+            background:#000;
+            color:#fff;
+            text-decoration:none;
+            border-radius:6px;
+            display:inline-block;
+            margin-top:10px;
+          ">Reset Password</a>
+        </div>
+      `
+    };
 
-      console.log("📨 Email sent successfully:", emailResponse);
-    } catch (emailError) {
-      console.error("❌ Resend email failed:", {
-        message: emailError.message,
-        name: emailError.name,
-        stack: emailError.stack,
-        response: emailError.response || null,
-      });
+    await sgMail.send(msg);
 
-      return res.status(502).json({
-        message: "Failed to send reset email",
-      });
-    }
+    console.log("📨 Reset email sent via SendGrid");
 
-    console.log("✅ Forgot password flow completed");
     return res.status(200).json({
-      message: "Password reset email sent",
+      message: "Password reset email sent"
     });
 
   } catch (error) {
-    console.error("🔥 Unexpected forgot-password error:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    });
-
+    console.error("🔥 Forgot-password error:", error);
     return res.status(500).json({
-      message: "Internal server error",
+      message: "Internal server error"
     });
   }
 };
+
 
 
 // const sendemaillink = async (req, res) => {
@@ -334,7 +322,7 @@ const changePassword = async (req, res) => {
 
   try {
     const validuser = await users.findOne({ _id: id, verifytoken: token });
-    if (!validUser) {
+    if (!validuser) {
       return res.status(401).json({ status: 401, message: "User does not exist" });
     }
     const verifyToken = jwt.verify(token, keysecret);
