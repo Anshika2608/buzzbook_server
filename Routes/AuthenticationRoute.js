@@ -28,7 +28,7 @@ router.get("/google/callback", (req, res, next) => {
     }
 
     const { accessJWT, refreshJWT } = data;
-      res.cookie("accessToken", accessToken, {
+      res.cookie("accessToken", accessJWT, {
       httpOnly: true,
       secure: true,
       sameSite: "None",
