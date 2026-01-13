@@ -4,11 +4,12 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const passport = require("passport");
 const nodemailer = require("nodemailer");
-const {Resend}=require("resend");
+const { Resend } = require("resend");
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const resend = new Resend(process.env.RESEND_MAIL_KEY);
 const keysecret = process.env.SECRET_KEY
+const generateOTP = require("../Middleware/GenerateOTP")
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -57,34 +58,36 @@ const registerUser = async (req, res) => {
     } else if (!nameRegex.test(name)) {
       return res.status(400).json({ message: "Name must contain only alphabets (2-40 characters)!" });
     }
-
-    const finalUser = new users({ name, email, password, cpassword });
-    const accessToken = finalUser.generateAccessToken();
-    const refreshToken = finalUser.generateRefreshToken();
-
-    finalUser.refreshToken = refreshToken;
+    const otp = generateOTP();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const finalUser = new users({
+      name, email, password, cpassword,
+      emailVerified: false,
+      emailOtp: hashedOtp,
+      emailOtpExpiry: Date.now() + 10 * 60 * 1000,
+    });
     await finalUser.save();
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 15 * 60 * 1000,
+    await sgMail.send({
+      to: email,
+      from: {
+        email: process.env.FROM_EMAIL,
+        name: "BuzzBook",
+      },
+      subject: "Verify your email",
+      html: `
+        <h3>Email Verification for BuzzBook</h3>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP is valid for 10 minutes.</p>
+      `,
     });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
     return res.status(201).json({
       message: "User registered & logged in",
       user: {
         id: finalUser._id,
         name: finalUser.name,
         email: finalUser.email,
+        emailVerified: false,
       },
     });
     ;
@@ -93,6 +96,59 @@ const registerUser = async (req, res) => {
     res.status(500).json({ message: "Error while registering a user", error: error.message });
   }
 };
+const verifyEmailAndLogin = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await users.findOne({ email });
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+
+    if (!user.emailOtp || user.emailOtpExpiry < Date.now())
+      return res.status(400).json({ message: "OTP expired" });
+
+    const isValid = await bcrypt.compare(otp, user.emailOtp);
+    if (!isValid)
+      return res.status(400).json({ message: "Invalid OTP" });
+
+    user.emailVerified = true;
+    user.emailOtp = null;
+    user.emailOtpExpiry = null;
+
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    return res.json({
+      message: "Email verified and logged in successfully",
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name
+      }
+    });
+
+  } catch (err) {
+    return res.status(500).json({ message: "Verification failed" });
+  }
+};
+
 
 const loginUser = async (req, res) => {
   const { email, password, recaptchaToken } = req.body;
@@ -100,7 +156,6 @@ const loginUser = async (req, res) => {
     return res.status(400).json({ message: "Fill all the required fields!" });
 
   try {
-    // ✅ reCAPTCHA verification (keep your existing logic)
     if (recaptchaToken !== "test-token") {
       const response = await axios.post(
         "https://www.google.com/recaptcha/api/siteverify",
@@ -118,7 +173,11 @@ const loginUser = async (req, res) => {
 
     const user = await users.findOne({ email });
     if (!user) return res.status(400).json({ message: "User does not exist!" });
-
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in"
+      });
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials!" });

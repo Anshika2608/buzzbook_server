@@ -5,7 +5,6 @@ const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 const authenticate = async (req, res, next) => {
   try {
-    // 🔹 Get token from Authorization header ("Bearer <token>")
     const token = req.cookies.accessToken;
 
     if (!token) {
@@ -41,4 +40,14 @@ const authenticate = async (req, res, next) => {
 };
 
 module.exports = authenticate;
+
+const requireEmailVerified = (req, res, next) => {
+  if (!req.rootUser.emailVerified) {
+    return res.status(403).json({
+      message: "Please verify your email to continue",
+    });
+  }
+  next();
+};
+module.exports = requireEmailVerified
 
