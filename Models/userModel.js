@@ -3,7 +3,6 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const keysecret = process.env.SECRET_KEY
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
@@ -23,6 +22,11 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+    googleId: {
+        type: String,
+        default: null
+    },
+    image: String,
     mobile: { type: String, default: "" },
     birthday: { type: Date, default: null },
     gender: { type: String, enum: ["Male", "Female", "Other"], default: "Other" },
@@ -54,11 +58,11 @@ userSchema.pre("save", async function (next) {
 
 
 userSchema.methods.generateAccessToken = function () {
-  return jwt.sign({ id: this._id }, ACCESS_SECRET, { expiresIn: "15m" });
+    return jwt.sign({ id: this._id }, ACCESS_SECRET, { expiresIn: "15m" });
 };
 
 userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign({ id: this._id }, REFRESH_SECRET, { expiresIn: "7d" });
+    return jwt.sign({ id: this._id }, REFRESH_SECRET, { expiresIn: "7d" });
 };
 
 

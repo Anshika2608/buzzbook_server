@@ -2,8 +2,7 @@
 const { Server } = require("socket.io");
 const TempBooking = require("./Models/TempBookingModel");
 const Theater = require("./Models/theaterModel");
-const NormalUser = require("./Models/userModel");
-const GoogleUser = require("./Models/googleUser");
+const User = require("./Models/userModel")
 let io;
 
 function initSocket(server) {
@@ -66,9 +65,8 @@ function initSocket(server) {
         const show = film.showtimes.find(s => s.time === showtime);
 
         // 3️⃣ Fetch userEmail (NormalUser || GoogleUser)
-        const normal = await NormalUser.findById(userId);
-        const google = await GoogleUser.findById(userId);
-        const userEmail = normal ? normal.email : google ? google.email : null;
+        const user = await User.findById(userId);
+        const userEmail = user.email ;
 
         if (!userEmail) {
           console.log("❌ User not found");

@@ -52,14 +52,12 @@ const verifyPayment = async (req, res) => {
     // User is authenticated now (coming from Authenticate middleware)
     const user_id = req.userId;
     const user_email = req.rootUser.email;
-    const user_type = req.userType === "google" ? "GoogleUser" : "NormalUser";
 
     // Attach correct user data to bookingDetails
     const updatedBookingDetails = {
       ...bookingDetails,
       user_id,
       user_email,
-      user_type,
       paymentId: razorpay_payment_id
     };
 

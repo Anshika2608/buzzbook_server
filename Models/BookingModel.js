@@ -4,12 +4,7 @@ const bookingSchema = new mongoose.Schema(
   {
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
-      refPath: "user_type", 
-      required: true,
-    },
-    user_type: {
-      type: String,
-      enum: ["NormalUser", "GoogleUser"],
+      ref: "users",
       required: true,
     },
     user_email: {

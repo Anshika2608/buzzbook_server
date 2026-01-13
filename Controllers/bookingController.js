@@ -155,7 +155,7 @@ const updateTempBooking = async (req, res) => {
   }
 };
 const releaseTempBooking = async (req, res) => {
-  console.log("🔥 releaseTempBooking API HIT");
+  console.log("releaseTempBooking API HIT");
   const { tempBookingId } = req.body;
   const userId = req.userId;
   try {
@@ -163,7 +163,7 @@ const releaseTempBooking = async (req, res) => {
     if (!temp) return res.status(404).json({ message: "Temp booking not found" });
 
     const { theater_id, audi_number, movie_title, showtime, show_date, seats } = temp;
-    console.log("📌 BEFORE EMIT seatReleased");
+    console.log("BEFORE EMIT seatReleased");
     // Release seats in socket
     getIO().emit("seatReleased", {
       theater_id,
@@ -174,8 +174,8 @@ const releaseTempBooking = async (req, res) => {
       seats,
       userId
     });
-    console.log("📌 AFTER EMIT seatReleased");
-    console.log("🔥 Emitted seatReleased for seats:", seats);
+    console.log("AFTER EMIT seatReleased");
+    console.log("Emitted seatReleased for seats:", seats);
     // Delete the temp booking
     await TempBooking.findByIdAndDelete(tempBookingId);
 
@@ -197,7 +197,7 @@ const updateSeats = async (req, res) => {
     const temp = await TempBooking.findById(tempBookingId);
     if (!temp) return res.status(404).json({ message: "Temp booking not found" });
 
-    const userId = req.userId; // <<--- GET USER ID HERE
+    const userId = req.userId; 
 
     const {
       theater_id,
@@ -217,7 +217,6 @@ const updateSeats = async (req, res) => {
 
     const now = new Date();
 
-    // ******** RELEASE OLD SEATS ********
     getIO().emit("seatReleased", {
       theater_id,
       audi_number,
@@ -225,10 +224,9 @@ const updateSeats = async (req, res) => {
       showtime,
       show_date: formattedDate,
       seats: temp.seats,
-      userId          // <<--- SEND USER ID
+      userId          
     });
 
-    // ******** CHECK NEW SEATS ********
     const held = await TempBooking.find({
       theater_id,
       movie_title,
@@ -246,7 +244,6 @@ const updateSeats = async (req, res) => {
       }
     }
 
-    // ******** CALCULATE NEW PRICE ********
     let seat_price_total = 0;
     const prices = Object.fromEntries(
       Object.entries(show.prices).map(([k, v]) => [k.toUpperCase(), v])
@@ -258,7 +255,6 @@ const updateSeats = async (req, res) => {
       }
     });
 
-    // ******** UPDATE TEMP BOOKING ********
     temp.seats = seats;
     temp.seat_price_total = seat_price_total;
     temp.total_price = seat_price_total + temp.snacks_total;
@@ -266,7 +262,6 @@ const updateSeats = async (req, res) => {
 
     await temp.save();
 
-    // ******** EMIT NEW HOLD ********
     getIO().emit("seatHeld", {
       theater_id,
       audi_number,
@@ -312,8 +307,6 @@ const confirmBooking = async (req, res) => {
 
   const user_id = req.userId;
   const user_email = req.rootUser?.email;
-  const user_type = req.userType === "google" ? "GoogleUser" : "NormalUser";
-
 
   if (
     !theater_id || !audi_number || !movie_title || !movie_language ||
@@ -384,7 +377,6 @@ const confirmBooking = async (req, res) => {
 
     const newBooking = new Booking({
       user_id,
-      user_type,
       user_email,
       theater_id: theater._id,
       theater_name: theater.name,

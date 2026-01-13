@@ -1,6 +1,5 @@
 const Wishlist = require("../Models/WishlistModel");
 const users = require("../Models/userModel");
-const googleUsers = require("../Models/googleUser");
 
 const getWishlist = async (req, res) => {
   try {
@@ -20,7 +19,7 @@ const getWishlist = async (req, res) => {
       return res.status(200).json({ wishlist: { movies: [], theaters: [] } });
     }
 
-    res.status(200).json({ wishlist, userType: req.userType });
+    res.status(200).json({ wishlist});
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -31,10 +30,7 @@ const addToWishlist = async (req, res) => {
     const userId = req.userId;
     const { movieId, theaterId } = req.body;
 
-    let user =
-      req.userType === "normal"
-        ? await users.findById(userId)
-        : await googleUsers.findById(userId);
+    let user = await users.findById(userId)
 
     if (!user) return res.status(404).json({ message: "User not found" });
 

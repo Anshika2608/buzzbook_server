@@ -1,10 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const users = require("../Models/googleUser");
+const users = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
-
-const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
-const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 passport.use(
   new GoogleStrategy(
@@ -13,25 +10,36 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: "https://buzzbook-server-dy0q.onrender.com/auth/google/callback",
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (_, __, profile, done) => {
       try {
-        let user = await users.findOne({ googleId: profile.id });
+        const email = profile.emails[0].value;
 
-        if (!user) {
-          user = new users({
+        let user = await users.findOne({ email });
+
+        if (user) {
+          // Link Google to existing normal user
+          if (!user.googleId) {
+            user.googleId = profile.id;
+            user.image = profile.photos[0].value;
+            user.provider = "both";
+            await user.save();
+          }
+        } else {
+          // New Google-only user
+          user = await users.create({
             name: profile.displayName,
-            email: profile.emails[0].value,
+            email,
             googleId: profile.id,
             image: profile.photos[0].value,
+            provider: "google"
           });
-          await user.save();
         }
 
-        // ✅ Generate Access + Refresh Tokens
-        const accessJWT = jwt.sign({ id: user._id }, ACCESS_SECRET, { expiresIn: "15m" });
-        const refreshJWT = jwt.sign({ id: user._id }, REFRESH_SECRET, { expiresIn: "7d" });
+        // Generate Access + Refresh Tokens
+        const accessJWT = user.generateAccessToken();
+        const refreshJWT = user.generateRefreshToken();
 
-        // ✅ Save refresh token in DB
+        //  Save refresh token in DB
         user.refreshToken = refreshJWT;
         await user.save();
 

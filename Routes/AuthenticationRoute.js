@@ -24,12 +24,18 @@ router.get("/google",
 router.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", { session: false }, (err, data) => {
     if (err || !data || !data.accessJWT) {
-      return res.redirect("http://localhost:3000/login?error=google_login_failed");
+      return res.redirect("https://buzzbook-project.vercel.app/login");
     }
 
     const { accessJWT, refreshJWT } = data;
-
-    // ✅ Store refresh token in secure cookie
+      res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+      maxAge: 15 * 60 * 1000,
+      overwrite: true,
+    });
     res.cookie("refreshToken", refreshJWT, {
       httpOnly: true,
       secure: true,
@@ -38,8 +44,7 @@ router.get("/google/callback", (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // ✅ Redirect and send access token to frontend
-    res.redirect(`https://buzzbook-project.vercel.app/?accessToken=${accessJWT}`);
+    res.redirect("https://buzzbook-project.vercel.app/");
   })(req, res, next);
 });
 

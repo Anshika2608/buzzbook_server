@@ -1,16 +1,15 @@
 const jwt = require("jsonwebtoken");
-const NormalUser = require("../Models/userModel");
-const GoogleUser = require("../Models/googleUser");
+const User = require("../Models/userModel");
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 const authenticate = async (req, res, next) => {
   try {
     // 🔹 Get token from Authorization header ("Bearer <token>")
-      const token = req.cookies.accessToken;
+    const token = req.cookies.accessToken;
 
     if (!token) {
-       console.log("❌ No access token in cookie");
+      console.log("❌ No access token in cookie");
       return res.status(401).json({ message: "No access token" });
     }
 
@@ -23,24 +22,15 @@ const authenticate = async (req, res, next) => {
 
     const userId = decoded.id;
 
-       if (!userId)
+    if (!userId)
       return res.status(403).json({ message: "Invalid token payload" });
-    // 🔹 Check both Normal and Google user collections
-    let user = await NormalUser.findById(userId);
-    let userType = "normal";
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      user = await GoogleUser.findById(userId);
-      userType = "google";
+      return res.status(401).json({ message: "User not found" });
     }
 
-    if (!user) {
-      return res.status(401).json({ status: 401, message: "User not found" });
-    }
-
-    // 🔹 Attach to request object for downstream use
     req.userId = user._id.toString();
-    req.userType = userType;
     req.rootUser = user;
 
     next();
