@@ -3,12 +3,12 @@ const router = express.Router();
 const passport = require("passport")
 require("dotenv").config();
 const {authenticate} = require("../Middleware/Authenticate")
-const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword, refreshAccessToken, logoutUser, verifyEmailAndLogin } = require("../Controllers/authenticationController")
+const { registerUser, loginUser,verifyForgot,resendVerificationOtp, sendemaillink, changePassword, refreshAccessToken, logoutUser, verifyEmailAndLogin } = require("../Controllers/authenticationController")
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/refresh-token",refreshAccessToken)
 router.get("/validUser", authenticate, (req, res) => {
-  console.log("✅ /validUser hit by:", req.rootUser.email);
+  console.log("/validUser hit by:", req.rootUser.email);
   res.status(200).json({
     name: req.rootUser.name,
     email: req.rootUser.email,
@@ -50,7 +50,7 @@ router.get("/google/callback", (req, res, next) => {
 
 router.post("/logout",logoutUser)
 router.post("/sendpasswordLink", sendemaillink)
-
+router.post("/resendOTP",resendVerificationOtp)
 router.get("/ForgotPassword/:id/:token", verifyForgot)
 router.post("/:id/:token", changePassword)
 router.post("/verifyEmail",verifyEmailAndLogin)

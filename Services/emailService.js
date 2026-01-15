@@ -2,9 +2,7 @@ const sgMail = require("@sendgrid/mail");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-/**
- * Generic email sender
- */
+
 const sendEmail = async ({ to, subject, html }) => {
   try {
     await sgMail.send({
@@ -17,17 +15,15 @@ const sendEmail = async ({ to, subject, html }) => {
       html,
     });
 
-    console.log(`✅ Email sent to ${to} | Subject: ${subject}`);
+    console.log(`Email sent to ${to} | Subject: ${subject}`);
     return true;
   } catch (error) {
-    console.error("❌ Email send failed:", error.message);
+    console.error("Email send failed:", error.message);
     throw new Error("Email sending failed");
   }
 };
 
-/**
- * Send OTP email
- */
+
 const sendOtpEmail = async ({ email, otp }) => {
   const html = `
     <h3>Email Verification for BuzzBook</h3>
@@ -43,9 +39,7 @@ const sendOtpEmail = async ({ email, otp }) => {
   });
 };
 
-/**
- * Send password reset email
- */
+
 const sendPasswordResetEmail = async ({ email, resetUrl }) => {
   const html = `
     <div style="font-family:Arial,sans-serif">

@@ -213,17 +213,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-const validUser = async (req, res) => {
-  try {
-    const preUserOne = await users.findOne({ _id: req.userId });
-    res.status(201).json({ status: 201, preUserOne });
-  } catch (error) {
-    res.status(401).json({ status: 401, error });
-  }
-};
-googleLogin = passport.authenticate("google", {
-  scope: ["profile", "email"]
-});
+
 const sendemaillink = async (req, res) => {
   try {
 
@@ -428,5 +418,54 @@ const logoutUser = async (req, res) => {
     res.status(500).json({ message: "Logout failed", error: err.message });
   }
 };
+const resendVerificationOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-module.exports = { registerUser, loginUser, validUser, verifyEmailAndLogin, googleLogin, sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required",
+      });
+    }
+
+    const user = await users.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({
+        message: "Email already verified",
+      });
+    }
+
+    const otp = generateOTP();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
+    user.emailOtp = hashedOtp;
+    user.emailOtpExpiry = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    console.log("Resending verification OTP...");
+
+    await sendOtpEmail({
+      email: user.email,
+      otp,
+    });
+
+    console.log("Verification OTP resent to:", email);
+
+    return res.status(200).json({
+      message: "Verification OTP resent successfully",
+    });
+  } catch (error) {
+    console.error("Resend OTP error:", error);
+    return res.status(500).json({
+      message: "Failed to resend OTP",
+    });
+  }
+};
+module.exports = { registerUser, loginUser,resendVerificationOtp, verifyEmailAndLogin,sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }
