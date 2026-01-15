@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require("passport")
 require("dotenv").config();
 const authenticate = require("../Middleware/Authenticate")
-const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword, refreshAccessToken, logoutUser } = require("../Controllers/authenticationController")
+const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword, refreshAccessToken, logoutUser, verifyEmailAndLogin } = require("../Controllers/authenticationController")
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/refresh-token",refreshAccessToken)
@@ -53,5 +53,6 @@ router.post("/sendpasswordLink", sendemaillink)
 
 router.get("/ForgotPassword/:id/:token", verifyForgot)
 router.post("/:id/:token", changePassword)
+router.post("/verifyEmail",verifyEmailAndLogin)
 
 module.exports = router;

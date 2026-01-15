@@ -459,4 +459,4 @@ const logoutUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, validUser, googleLogin, sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }
+module.exports = { registerUser, loginUser, validUser,verifyEmailAndLogin, googleLogin, sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }
