@@ -67,6 +67,7 @@ const registerUser = async (req, res) => {
       emailOtpExpiry: Date.now() + 10 * 60 * 1000,
     });
     await finalUser.save();
+    console.log("Sending OTP email...");
     await sgMail.send({
       to: email,
       from: {
@@ -81,6 +82,8 @@ const registerUser = async (req, res) => {
         <p>This OTP is valid for 10 minutes.</p>
       `,
     });
+
+    console.log("OTP email sent successfully to:", email);
     return res.status(201).json({
       message: "User registered & logged in",
       user: {
@@ -459,4 +462,4 @@ const logoutUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, validUser,verifyEmailAndLogin, googleLogin, sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }
+module.exports = { registerUser, loginUser, validUser, verifyEmailAndLogin, googleLogin, sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }
