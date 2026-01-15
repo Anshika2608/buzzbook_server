@@ -5,6 +5,7 @@ const axios = require("axios");
 const passport = require("passport");
 const nodemailer = require("nodemailer");
 const { Resend } = require("resend");
+const { sendOtpEmail, sendPasswordResetEmail } = require("../Services/emailService");
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const resend = new Resend(process.env.RESEND_MAIL_KEY);
@@ -68,20 +69,7 @@ const registerUser = async (req, res) => {
     });
     await finalUser.save();
     console.log("Sending OTP email...");
-    await sgMail.send({
-      to: email,
-      from: {
-        email: process.env.FROM_EMAIL,
-        name: "BuzzBook",
-      },
-      subject: "Verify your email",
-      html: `
-        <h3>Email Verification for BuzzBook</h3>
-        <p>Your OTP is:</p>
-        <h1>${otp}</h1>
-        <p>This OTP is valid for 10 minutes.</p>
-      `,
-    });
+    await sendOtpEmail({ email, otp });
 
     console.log("OTP email sent successfully to:", email);
     return res.status(201).json({
@@ -262,31 +250,10 @@ const sendemaillink = async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL}/NewPassword/${user._id}/${encodeURIComponent(token)}`;
 
-    const msg = {
-      to: emailaddress,
-      from: {
-        email: process.env.FROM_EMAIL,
-        name: "Shifas"
-      },
-      subject: "Reset your password",
-      html: `
-        <div style="font-family:Arial,sans-serif">
-          <h3>Password Reset</h3>
-          <p>This link is valid for <b>20 minutes</b>.</p>
-          <a href="${resetUrl}" style="
-            padding:10px 16px;
-            background:#000;
-            color:#fff;
-            text-decoration:none;
-            border-radius:6px;
-            display:inline-block;
-            margin-top:10px;
-          ">Reset Password</a>
-        </div>
-      `
-    };
-
-    await sgMail.send(msg);
+    await sendPasswordResetEmail({
+      email: emailaddress,
+      resetUrl,
+    });
     return res.status(200).json({
       message: "Password reset email sent"
     });

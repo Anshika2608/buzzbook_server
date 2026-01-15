@@ -1,7 +1,7 @@
 const express=require("express");
 const router=express.Router();
 const { getSnacksByTheater, addSnack, updateSnack, deleteSnack } = require("../Controllers/SnackController");
-const authenticate = require("../Middleware/Authenticate");
+const {authenticate} = require("../Middleware/Authenticate");
 const { uploadSnackImages } = require("../Middleware/Multer");
 router.get("/snack_list/:theaterId",authenticate, getSnacksByTheater);
 router.post("/add_snack",authenticate,uploadSnackImages, addSnack);

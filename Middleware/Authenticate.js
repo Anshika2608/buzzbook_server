@@ -39,15 +39,24 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-module.exports = authenticate;
-
 const requireEmailVerified = (req, res, next) => {
+  if (!req.rootUser) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+
   if (!req.rootUser.emailVerified) {
     return res.status(403).json({
       message: "Please verify your email to continue",
     });
   }
+
   next();
 };
-module.exports = requireEmailVerified
+
+module.exports = {
+  authenticate,
+  requireEmailVerified,
+};
 

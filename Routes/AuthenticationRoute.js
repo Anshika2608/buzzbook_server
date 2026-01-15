@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router();
 const passport = require("passport")
 require("dotenv").config();
-const authenticate = require("../Middleware/Authenticate")
+const {authenticate} = require("../Middleware/Authenticate")
 const { registerUser, loginUser, validUser, googleLogin, verifyForgot, sendemaillink, changePassword, refreshAccessToken, logoutUser, verifyEmailAndLogin } = require("../Controllers/authenticationController")
 router.post("/register", registerUser);
 router.post("/login", loginUser);

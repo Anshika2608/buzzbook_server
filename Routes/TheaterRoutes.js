@@ -1,7 +1,7 @@
 const express=require("express");
 const { getTheater, addTheater,getSeatLayout, getTheaterForMovie, bookSeat,deleteTheater,getUniqueLanguagesInCity,addAudi, addFilmToAudi ,getTheaterById, getPriceRangesForMovie,filterTheatersByMovieCityAndPrice} = require("../Controllers/theaterController");
 const generateSeatsMiddleware = require("../Middleware/SeatLayout");
-const authenticate=require("../Middleware/Authenticate")
+const {authenticate}=require("../Middleware/Authenticate")
 const router=express.Router();
 router.get("/theater_list",getTheater);
 router.post("/add_theater",generateSeatsMiddleware,addTheater);

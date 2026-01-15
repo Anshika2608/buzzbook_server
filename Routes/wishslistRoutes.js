@@ -3,7 +3,7 @@ const {
   getWishlist,
   addToWishlist,
 } = require("../Controllers/wishlistController");
-const authenticate = require("../Middleware/Authenticate");
+const {authenticate} = require("../Middleware/Authenticate");
 const router = express.Router();
 
 router.get("/",authenticate, getWishlist);

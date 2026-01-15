@@ -6,7 +6,7 @@ const { getMovie, addMovie,getMovieFromLocation, getMovieDetails,deleteMovie,com
     addReplyToReview,toggleHelpfulReview,getRepliesForReview,addReview
 } = require("../Controllers/movieController");
 
-const authenticate = require("../Middleware/Authenticate")
+const {authenticate} = require("../Middleware/Authenticate")
 router.get("/movie_list", getMovie);
 router.post("/add_movie", uploadMultiple, addMovie);
 router.get("/getMovie",getMovieFromLocation)

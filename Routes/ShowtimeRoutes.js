@@ -1,6 +1,6 @@
 const express=require("express");
 const generateSeatsMiddleware=require("../Middleware/SeatLayout.js")
-const authenticate=require("../Middleware/Authenticate.js")
+const {authenticate}=require("../Middleware/Authenticate.js")
 const { updateShowtime,addShowtime ,getShowtime,deleteShowtime,getShowtimeRangesByCityAndMovie,filterTheatersByShowtimeRange} = require("../Controllers/showtimeControllers");
 const router=express.Router();
 router.patch("/update_showtime",authenticate,updateShowtime);

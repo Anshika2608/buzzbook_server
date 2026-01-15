@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { holdSeats ,confirmBooking,updateTempBooking,releaseTempBooking,updateSeats} = require("../Controllers/bookingController");
-const authenticate  = require("../Middleware/Authenticate");
+const {authenticate}  = require("../Middleware/Authenticate");
 
 
 router.post("/hold-seats",authenticate, holdSeats);
