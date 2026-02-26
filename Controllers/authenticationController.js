@@ -468,4 +468,4 @@ const resendVerificationOtp = async (req, res) => {
     });
   }
 };
-module.exports = { registerUser, loginUser,resendVerificationOtp, verifyEmailAndLogin,sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }
+module.exports = { registerUser, loginUser, resendVerificationOtp, verifyEmailAndLogin, sendemaillink, verifyForgot, changePassword, refreshAccessToken, logoutUser }

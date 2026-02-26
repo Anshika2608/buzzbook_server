@@ -1,4 +1,5 @@
 const razorpay = require("../config/razorpay");
+const TempBooking = require("../Models/TempBookingModel")
 const crypto = require("crypto");
 const { confirmBooking } = require("./bookingController")
 const createOrder = async (req, res) => {
@@ -32,7 +33,8 @@ const verifyPayment = async (req, res) => {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      bookingDetails
+      bookingDetails,
+      tempBookingId,
     } = req.body;
 
     // Validate Razorpay signature
@@ -60,7 +62,35 @@ const verifyPayment = async (req, res) => {
       user_email,
       paymentId: razorpay_payment_id
     };
+    // Validate temp booking
+    const tempBooking = await TempBooking.findById(tempBookingId);
 
+    if (!tempBooking) {
+      return res.status(400).json({
+        success: false,
+        reason: "BOOKING_EXPIRED",
+        message: "Temporary booking not found",
+      });
+    }
+
+    // check status
+    if (tempBooking.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        reason: "BOOKING_EXPIRED",
+        message: "Booking already processed or cancelled",
+      });
+    }
+
+    const now = new Date();
+
+    if (tempBooking.hold_expires_at <= now) {
+      return res.status(400).json({
+        success: false,
+        reason: "BOOKING_EXPIRED",
+        message: "Seat hold expired",
+      });
+    }
     // Confirm booking using the REAL authenticated user
     await confirmBooking(
       {
