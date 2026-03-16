@@ -4,8 +4,24 @@ const crypto = require("crypto");
 const { confirmBooking } = require("./bookingController")
 const createOrder = async (req, res) => {
   try {
-    const { amount, currency = "INR", receipt } = req.body;
+    const { amount, currency = "INR", receipt,tempBookingId } = req.body;
+       const temp = await TempBooking.findById(tempBookingId);
 
+    // ❗ Session expired
+    if (!temp) {
+      return res.status(400).json({
+        success: false,
+        reason: "BOOKING_EXPIRED",
+        message: "Session expired"
+      });
+    }
+      if (temp.hold_expires_at <= new Date()) {
+      return res.status(400).json({
+        success: false,
+        reason: "BOOKING_EXPIRED",
+        message: "Seat hold expired"
+      });
+    }
     const options = {
       amount: amount * 100,
       currency,
