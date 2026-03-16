@@ -60,7 +60,7 @@ const holdSeats = async (req, res) => {
     });
 
     // Create temp booking (snacks empty initially)
-    const holdExpiry = new Date(Date.now() + 7 * 60 * 1000);
+    const holdExpiry = new Date(Date.now() + 1 * 60 * 1000);
     const tempBooking = await TempBooking.create({
       userId,
       userEmail,
